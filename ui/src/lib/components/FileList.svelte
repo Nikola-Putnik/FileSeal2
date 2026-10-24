@@ -21,7 +21,6 @@
   import { byConcern, shownCode, shownCounts, shownLabel, statusLabel } from '../results';
   import type { BatchRun } from '../run.svelte';
   import type { Selection, SelectionProblem } from '../selection.svelte';
-  import Confirm from './Confirm.svelte';
   import ExtensionFilter from './ExtensionFilter.svelte';
   import MiddleText from './MiddleText.svelte';
   import Popover from './Popover.svelte';
@@ -241,17 +240,7 @@
       <button type="button" onclick={remove} disabled={busy || selected.size === 0}>
         {t().list.remove}
       </button>
-      {#if withResults > 0}
-        <!-- Results would be lost: asked first. -->
-        <Confirm
-          label={t().list.clear}
-          question={t().list.clearConfirm}
-          disabled={busy}
-          onconfirm={clear}
-        />
-      {:else}
-        <button type="button" onclick={clear} disabled={busy || empty}>{t().list.clear}</button>
-      {/if}
+      <button type="button" onclick={clear} disabled={busy || empty}>{t().list.clear}</button>
       <Popover title={t().list.more} bind:open={moreOpen} align="end">
         {#snippet label()}<span aria-hidden="true">⋯</span>{/snippet}
         <div class="more">

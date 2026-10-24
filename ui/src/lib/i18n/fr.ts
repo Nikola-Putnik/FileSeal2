@@ -205,7 +205,6 @@ export const fr: Messages = {
     extensionsAll: 'toutes',
     extensionsOnly: (list: string) => `seulement ${list}`,
     extensionsLeftOut: (count: number) => `${n(count)} écartée${count > 1 ? 's' : ''}`,
-    clearConfirm: 'Retirer tous les fichiers de la liste ? Rien n’est supprimé du disque.',
     stop: 'Arrêter',
     scanning: (files: number, folders: number) =>
       `Parcours des dossiers… ${n(files)} fichier${files > 1 ? 's' : ''} trouvé${files > 1 ? 's' : ''} dans ${n(folders)} dossier${folders > 1 ? 's' : ''}`,

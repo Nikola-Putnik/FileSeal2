@@ -49,7 +49,7 @@ L'écran Fichiers, de haut en bas :
 
   Les dossiers sont parcourus par le moteur selon les règles de la [sélection](selection.md). Les lignes arrivent par paquets, et on peut arrêter le parcours.
 - **Un fichier de hash ajouté en mode Vérifier** (`.sha256`, `.md5`, `SHA256SUMS`…) est remplacé par les fichiers qu'il liste. Chacun sera vérifié avec sa ligne, et seulement elle, comme le fait `sha256sum -c`. Les lignes inutilisables vont dans l'onglet Problèmes. Dans un autre mode, le fichier de hash est ajouté comme un fichier ordinaire, avec un message qui l'explique.
-- **Retirer** la sélection ; **Vider la liste**, avec confirmation dans la page seulement si des résultats seraient perdus ; dans le menu **⋯** : **Monter / Descendre** la sélection, **Trier** par nom, dossier, taille ou extension (un clic sur un en-tête de colonne trie aussi).
+- **Retirer** la sélection ; **Vider la liste**, sans confirmation : rien n'est supprimé du disque, et les fichiers se rajoutent d'un glisser-déposer ; dans le menu **⋯** : **Monter / Descendre** la sélection, **Trier** par nom, dossier, taille ou extension (un clic sur un en-tête de colonne trie aussi).
 - **L'ordre de la liste est l'ordre de démarrage** du lot ([lots.md](lots.md)).
 - **Filtrer par nom** : une partie du nom ou du dossier.
 - **Onglets** :

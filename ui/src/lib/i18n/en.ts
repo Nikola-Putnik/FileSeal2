@@ -200,7 +200,6 @@ export const en = {
     extensionsAll: 'all',
     extensionsOnly: (list: string) => `only ${list}`,
     extensionsLeftOut: (count: number) => `${n(count)} left out`,
-    clearConfirm: 'Remove every file from the list? Nothing is deleted from the disk.',
     stop: 'Stop',
     scanning: (files: number, folders: number) =>
       `Looking through the folders… ${n(files)} file${files === 1 ? '' : 's'} found in ${n(folders)} folder${folders === 1 ? '' : 's'}`,

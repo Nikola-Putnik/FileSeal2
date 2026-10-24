@@ -1,5 +1,9 @@
 # Nouveautés
 
+## À venir
+
+- **« Vider la liste »** ne demande plus de confirmation : rien n'est supprimé du disque.
+
 ## 2.4.0 — 2026-10-24
 
 - **Thèmes** (⚙) : comme Windows (par défaut), clair, sombre, ou sombre OLED (noir pur). Contrastes vérifiés pour chacun ; listes déroulantes, cases et champs suivent le thème, la barre de titre aussi.
