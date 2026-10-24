@@ -16,7 +16,7 @@ Windows 11, 64 bits. Sous Windows 10, le runtime « Microsoft Edge WebView2 » e
 
 ### Avec l'installateur
 
-1. Lancez `FileSeal_2.3.0_x64-setup.exe`. Aucun droit administrateur n'est demandé : FileSeal s'installe pour vous seul, dans `%LOCALAPPDATA%\FileSeal`.
+1. Lancez `FileSeal_2.4.0_x64-setup.exe`. Aucun droit administrateur n'est demandé : FileSeal s'installe pour vous seul, dans `%LOCALAPPDATA%\FileSeal`.
 2. Le programme n'étant pas signé, Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen). Choisissez **Informations complémentaires**, puis **Exécuter quand même**.
 3. FileSeal apparaît dans le menu Démarrer. La dernière page de l'installateur propose aussi un raccourci sur le Bureau.
 
@@ -24,7 +24,7 @@ L'installateur s'affiche en français ou en anglais, selon la langue de Windows.
 
 ### Version portable (clé USB)
 
-1. Décompressez `FileSeal_2.3.0_x64-portable.zip` où vous voulez, par exemple sur une clé USB. Vous obtenez un dossier `FileSeal` avec `FileSeal.exe`, `portable.flag` et `README.txt`.
+1. Décompressez `FileSeal_2.4.0_x64-portable.zip` où vous voulez, par exemple sur une clé USB. Vous obtenez un dossier `FileSeal` avec `FileSeal.exe`, `portable.flag` et `README.txt`.
 2. Lancez `FileSeal.exe`. « portable » s'affiche à côté du numéro de version.
 
 En version portable :
@@ -36,10 +36,10 @@ Supprimer `portable.flag` fait fonctionner ce même programme comme la version i
 
 ### Vérifier le fichier téléchargé
 
-Chaque fichier livré est accompagné de son fichier de hash (`FileSeal_2.3.0_x64-setup.exe.sha256`), écrit par FileSeal lui-même. Pour contrôler le téléchargement, mettez les deux fichiers dans le même dossier, puis au choix :
+Chaque fichier livré est accompagné de son fichier de hash (`FileSeal_2.4.0_x64-setup.exe.sha256`), écrit par FileSeal lui-même. Pour contrôler le téléchargement, mettez les deux fichiers dans le même dossier, puis au choix :
 - avec un FileSeal déjà installé : action **Vérifier**, puis ajoutez le fichier `.sha256` à la liste ;
-- avec Git for Windows : `sha256sum -c FileSeal_2.3.0_x64-setup.exe.sha256` ;
-- sans outil : `certutil -hashfile FileSeal_2.3.0_x64-setup.exe SHA256`, à comparer au contenu du fichier `.sha256`.
+- avec Git for Windows : `sha256sum -c FileSeal_2.4.0_x64-setup.exe.sha256` ;
+- sans outil : `certutil -hashfile FileSeal_2.4.0_x64-setup.exe SHA256`, à comparer au contenu du fichier `.sha256`.
 
 ## Mettre à jour
 

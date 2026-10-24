@@ -1,6 +1,6 @@
 # Nouveautés
 
-## À venir
+## 2.4.0 — 2026-10-24
 
 - **Thèmes** (⚙) : comme Windows (par défaut), clair, sombre, ou sombre OLED (noir pur). Contrastes vérifiés pour chacun ; listes déroulantes, cases et champs suivent le thème, la barre de titre aussi.
 - **Suivre les fichiers déplacés automatiquement** (Réglages, pour Créer et Vérifier) : un fichier déplacé, renommé ou retrouvé sous une autre lettre de lecteur est rattaché à sa référence sans confirmation, puis vérifié ou complété. La base garde son dernier emplacement connu, l'ancien reste dans l'historique. Une copie n'est jamais rattachée. Désactivé par défaut.

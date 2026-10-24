@@ -7,13 +7,13 @@ Application de bureau pour **contrôler l'intégrité de fichiers dans le temps*
 
 Les fichiers sources ne sont jamais modifiés. Une vérification ne remplace jamais une référence.
 
-**État** : version 2.3.0, pour Windows 11 (64 bits). macOS et Linux ne sont pas encore pris en charge.
+**État** : version 2.4.0, pour Windows 11 (64 bits). macOS et Linux ne sont pas encore pris en charge.
 L'interface est en anglais, avec une traduction française au choix (bouton ⚙). Une seule fenêtre : on choisit l'action, on ajoute des fichiers et des dossiers (ou on les glisse dans la fenêtre), on lance, puis on lit les résultats et on décide ([docs/interface.md](docs/interface.md)). Nouveautés : [CHANGELOG.md](CHANGELOG.md). Décisions : [docs/adr/](docs/adr/).
 
 ## Installer
 
-- **Installateur** : `FileSeal_2.3.0_x64-setup.exe`, pour l'utilisateur courant, sans droits administrateur.
-- **Version portable** (clé USB) : `FileSeal_2.3.0_x64-portable.zip`, à décompresser, puis lancer `FileSeal.exe`. Rien n'est écrit dans le profil Windows.
+- **Installateur** : `FileSeal_2.4.0_x64-setup.exe`, pour l'utilisateur courant, sans droits administrateur.
+- **Version portable** (clé USB) : `FileSeal_2.4.0_x64-portable.zip`, à décompresser, puis lancer `FileSeal.exe`. Rien n'est écrit dans le profil Windows.
 
 Mode d'emploi complet : [docs/guide-utilisateur.md](docs/guide-utilisateur.md). Construire ces fichiers : `scripts\build.cmd` ([docs/tests-build-livraison.md](docs/tests-build-livraison.md)).
 
