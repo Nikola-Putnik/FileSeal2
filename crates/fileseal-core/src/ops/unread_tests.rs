@@ -67,7 +67,10 @@ impl Fixture {
         };
         verify_file(
             path,
-            &VerifyOptions { use_sidecar: false },
+            &VerifyOptions {
+                use_sidecar: false,
+                follow_moves: false,
+            },
             Some(target),
             &Control::new(),
             &mut |_, _| {},

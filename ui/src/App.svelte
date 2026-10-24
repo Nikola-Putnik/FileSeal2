@@ -199,9 +199,10 @@
             newItem: false,
             existing: settings.existing,
             importHashFiles: settings.importHashFiles,
+            followMoves: settings.followMoves,
           }
         : action === 'verify'
-          ? { kind: 'verify', useSidecar: settings.useSidecar }
+          ? { kind: 'verify', useSidecar: settings.useSidecar, followMoves: settings.followMoves }
           : { kind: 'search' };
     await run.start(included, batch, settings.parallelVolumes, databaseActive);
     await refreshDatabase();
@@ -317,6 +318,7 @@
           newItem: true,
           existing: 'read',
           importHashFiles: false,
+          followMoves: false,
         },
         true,
         () => {},

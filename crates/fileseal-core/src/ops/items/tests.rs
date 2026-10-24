@@ -63,7 +63,10 @@ impl Fixture {
             store: &shared,
             operation_id,
         };
-        let options = VerifyOptions { use_sidecar: false };
+        let options = VerifyOptions {
+            use_sidecar: false,
+            follow_moves: false,
+        };
         verify_file(
             path,
             &options,

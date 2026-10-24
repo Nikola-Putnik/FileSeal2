@@ -631,9 +631,42 @@ impl Store {
     /// drive got another letter). Its previous location is kept as history.
     /// Refused if another active item is already recorded there.
     pub fn relocate(&mut self, item_id: i64, location: &NewLocation) -> Result<(), Problem> {
+        self.relocate_checked(item_id, None, location).map(|_| ())
+    }
+
+    /// Same, only if the item is still recorded at `from_key`: false if it
+    /// was moved meanwhile (another file of the batch attached to it).
+    pub fn relocate_from(
+        &mut self,
+        item_id: i64,
+        from_key: &str,
+        location: &NewLocation,
+    ) -> Result<bool, Problem> {
+        self.relocate_checked(item_id, Some(from_key), location)
+    }
+
+    fn relocate_checked(
+        &mut self,
+        item_id: i64,
+        from_key: Option<&str>,
+        location: &NewLocation,
+    ) -> Result<bool, Problem> {
         self.writable()?;
         let now = timestamp::now();
         let tx = self.conn.transaction().map_err(db_problem)?;
+        if let Some(from_key) = from_key {
+            let current: Option<String> = tx
+                .query_row(
+                    "SELECT path_key FROM location WHERE item_id = ?1 AND is_current = 1",
+                    [item_id],
+                    |row| row.get(0),
+                )
+                .optional()
+                .map_err(db_problem)?;
+            if current.as_deref() != Some(from_key) {
+                return Ok(false);
+            }
+        }
         let taken: Option<i64> = tx
             .query_row(
                 "SELECT l.item_id FROM location l JOIN item i ON i.id = l.item_id \
@@ -658,7 +691,8 @@ impl Store {
         insert_location(&tx, item_id, location, &now)?;
         faults::check(FaultPoint::DatabaseWrite, &self.path)
             .map_err(|err| Problem::from_io(&err))?;
-        tx.commit().map_err(db_problem)
+        tx.commit().map_err(db_problem)?;
+        Ok(true)
     }
 
     /// Accepts what a verification observed as the item's new reference:

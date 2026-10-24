@@ -9,6 +9,7 @@ const none: RunPreferences = {
   writeSidecar: null,
   useSidecar: null,
   useDatabase: null,
+  followMoves: null,
   recursive: null,
   includeHidden: null,
   parallelVolumes: null,
@@ -64,6 +65,13 @@ describe('settings summary', () => {
       'SHA-256 · hash files + database · referenced files skipped',
     );
     expect(settingsSummary('verify', settings, null)).toBe('references: hash files');
+    const following = { ...settings, followMoves: true };
+    expect(settingsSummary('verify', following, 'Films')).toBe(
+      'references: hash files + database · moves followed',
+    );
+    // Without a database, nothing to follow.
+    expect(settingsSummary('verify', following, null)).toBe('references: hash files');
+    expect(settingsSummary('search', following, 'Films')).toBe('');
     expect(
       settingsSummary('search', { ...settings, recursive: false, includeHidden: true }, 'Films'),
     ).toBe('without subfolders · hidden files included');

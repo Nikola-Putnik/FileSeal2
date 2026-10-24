@@ -1,7 +1,7 @@
 <script lang="ts">
   // The settings of the next batch, shown when asked (the button above
   // sums them up): algorithms and destinations (create), references
-  // (verify), and how folders are looked through.
+  // (verify), moved files (both), and how folders are looked through.
   import type { DatabaseInfo } from '../generated/DatabaseInfo';
   import { t } from '../i18n/index.svelte';
   import type { ActionKind } from '../run.svelte';
@@ -103,6 +103,20 @@
           {#if !database}<span class="muted">{t().settings.noDatabase}</span>{/if}
         </label>
         {#if haslisted}<p class="muted">{t().settings.listedReferences}</p>{/if}
+      </fieldset>
+    {/if}
+    {#if action !== 'search'}
+      <fieldset>
+        <legend>{t().settings.follow.title}</legend>
+        <label>
+          <input
+            type="checkbox"
+            bind:checked={settings.followMoves}
+            disabled={disabled || !settings.useDatabase || !databaseWritable}
+          />
+          {t().settings.follow.label}
+        </label>
+        <p class="muted hint">{t().settings.follow.hint}</p>
       </fieldset>
     {:else}
       <fieldset>

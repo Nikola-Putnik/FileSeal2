@@ -19,7 +19,7 @@ Le bouton « Export report… » des résultats écrit le rapport de la **derni�
 | `size` | Taille en octets, si connue |
 | `sha256`, `md5` | Hash calculés (vide si non calculé) |
 | `expected_sha256`, `expected_md5` | **Vérification** : hash attendus, ceux de la base d'abord, puis ceux des fichiers de hash. **Création** : hash de la référence existante en base. |
-| `detail` | Détails séparés par ` \| ` : résultat de chaque destination (création), écarts de taille, problème rencontré, emplacement enregistré sous une autre lettre de lecteur, résultat de la recherche par contenu (`content: …`, `same content: <chemin> (<présence>)`, `same name: <chemin>`) |
+| `detail` | Détails séparés par ` \| ` : résultat de chaque destination (création), écarts de taille, problème rencontré, emplacement enregistré sous une autre lettre de lecteur, emplacement suivi automatiquement (`location followed from <chemin>`), résultat de la recherche par contenu (`content: …`, `same content: <chemin> (<présence>)`, `same name: <chemin>`) |
 
 Les codes sont en anglais, stables, et identiques à ceux de l'historique de la base.
 

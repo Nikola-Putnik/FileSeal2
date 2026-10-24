@@ -11,7 +11,8 @@
 //! - the database reference of a file is found by its path (R1), else by
 //!   its place on its volume (R2: drive letter changed); otherwise its
 //!   content is looked up (R4, R5) and a probable move is proposed, never
-//!   applied (docs/rapprochement.md).
+//!   applied (docs/rapprochement.md), unless the user chose to follow
+//!   locations automatically (`follow`).
 
 use std::path::{Path, PathBuf};
 
@@ -29,6 +30,7 @@ use crate::timestamp;
 
 pub mod content;
 pub mod decide;
+mod follow;
 pub mod items;
 pub mod manifest;
 pub mod search;
@@ -62,6 +64,10 @@ pub struct CreateOptions {
     /// there as an imported reference, still without reading it.
     #[serde(default)]
     pub import_hash_files: bool,
+    /// A file found elsewhere than recorded is attached to its item without
+    /// asking (`follow`).
+    #[serde(default)]
+    pub follow_moves: bool,
 }
 
 /// What creating does with a file that already has references.
@@ -87,6 +93,10 @@ pub enum ExistingReferences {
 pub struct VerifyOptions {
     /// Look for `file.<algo>` next to the file.
     pub use_sidecar: bool,
+    /// A file found elsewhere than recorded is attached to its item without
+    /// asking (`follow`).
+    #[serde(default)]
+    pub follow_moves: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, TS)]
@@ -193,6 +203,9 @@ pub struct CreateReport {
     /// What the database knows about this content, when the file's own
     /// location was not recorded.
     pub finding: Option<ContentFinding>,
+    /// Locations followed: the item was recorded at this other path, and
+    /// now is at this one.
+    pub relocated_from: Option<String>,
 }
 
 /// Creates the references of one file in the requested destinations.
@@ -214,6 +227,7 @@ pub fn create_reference(
         item_id: None,
         location_change: None,
         finding: None,
+        relocated_from: None,
     };
     let (path, location) = match locate(path) {
         Ok(found) => found,
@@ -265,6 +279,17 @@ pub fn create_reference(
                 result.problem = Some(problem);
             }
         }
+    }
+    if options.follow_moves
+        && let (Some(target), Some(known)) = (db, &known)
+    {
+        report.relocated_from = follow_volume(
+            &mut report.location_change,
+            target,
+            &path,
+            &location,
+            known.item_id,
+        );
     }
     if options.existing != ExistingReferences::Read {
         let unread = without_reading(
@@ -335,32 +360,44 @@ pub fn create_reference(
         }
     };
     report.size = Some(hashed.size);
+
+    // A content the database already has, at a location it does not know:
+    // probably the same file moved here. Not written until the user says
+    // whether it moved (attach) or is another copy (new item), unless
+    // locations are followed: then it is attached at once.
+    let mut deferred = false;
+    if look_up_content && let (Some(target), Some(result)) = (db, database.as_mut()) {
+        match content::find(target.store, &location.file_name, None, &hashed) {
+            Ok(mut finding) => {
+                let followed = (options.follow_moves && !options.new_item)
+                    .then(|| follow::content(target.store, &path, &location, &hashed, &mut finding))
+                    .flatten();
+                if let Some((attached, from)) = followed {
+                    result.existing = attached.digests.clone();
+                    result.existing_size = Some(attached.size);
+                    report.item_id = Some(attached.item_id);
+                    report.relocated_from = Some(from);
+                    known = Some(attached);
+                } else {
+                    deferred = !options.new_item
+                        && matches!(
+                            finding.outcome,
+                            ContentOutcome::ProbablyMoved | ContentOutcome::Ambiguous
+                        );
+                    if finding.outcome != ContentOutcome::Unknown || !finding.hints.is_empty() {
+                        report.finding = Some(finding);
+                    }
+                }
+            }
+            Err(problem) => tracing::warn!(%problem, "content not looked up"),
+        }
+    }
     report.digests = hashed
         .digests
         .iter()
         .filter(|d| needed_for_report(d.algorithm, &selected, &sidecars, known.as_ref()))
         .cloned()
         .collect();
-
-    // A content the database already has, at a location it does not know:
-    // probably the same file moved here. Not written until the user says
-    // whether it moved (attach) or is another copy (new item).
-    let mut deferred = false;
-    if look_up_content && let Some(target) = db {
-        match content::find(target.store, &location.file_name, None, &hashed) {
-            Ok(finding) => {
-                deferred = !options.new_item
-                    && matches!(
-                        finding.outcome,
-                        ContentOutcome::ProbablyMoved | ContentOutcome::Ambiguous
-                    );
-                if finding.outcome != ContentOutcome::Unknown || !finding.hints.is_empty() {
-                    report.finding = Some(finding);
-                }
-            }
-            Err(problem) => tracing::warn!(%problem, "content not looked up"),
-        }
-    }
 
     // Check the existing references against what was just read.
     let mut blocked = false;
@@ -721,6 +758,31 @@ pub(crate) fn recorded_reference(
     }
 }
 
+/// R2 followed (`follow_moves`): the item found at the same place of the
+/// same disk, under another drive letter, is recorded at `path` now. Its
+/// former path moves from `location_change` (a change to propose) to the
+/// value returned (a change made). A failure is logged and leaves the
+/// change to propose, as without the option.
+fn follow_volume(
+    location_change: &mut Option<String>,
+    target: DbTarget,
+    path: &Path,
+    location: &NewLocation,
+    item_id: i64,
+) -> Option<String> {
+    location_change.as_ref()?;
+    match follow::volume(target.store, path, location, item_id) {
+        Ok(()) => {
+            tracing::info!(item_id, path = %location.path, "location followed (drive letter)");
+            location_change.take()
+        }
+        Err(problem) => {
+            tracing::warn!(%problem, path = %location.path, "location not followed");
+            None
+        }
+    }
+}
+
 /// The location record of a file just read: its path, its place on its
 /// volume, and the size and date seen there.
 pub(crate) fn observed_location(
@@ -907,6 +969,9 @@ pub struct VerifyReport {
     /// What the database knows about this content, when its location is
     /// not recorded (R5) or when it differs from its reference (R4).
     pub finding: Option<ContentFinding>,
+    /// Locations followed: the item was recorded at this other path, and
+    /// now is at this one.
+    pub relocated_from: Option<String>,
 }
 
 /// Verifies one file against every reference found for it.
@@ -944,6 +1009,7 @@ pub(crate) fn verify_against(
         verification_id: None,
         location_change: None,
         finding: None,
+        relocated_from: None,
     };
     let (path, location) = match locate(path) {
         Ok(found) => found,
@@ -999,23 +1065,28 @@ pub(crate) fn verify_against(
             }
             Err(problem) => return report.fail(problem),
         }
+        if options.follow_moves
+            && let Some(known) = known.as_mut()
+        {
+            report.relocated_from = follow_volume(
+                &mut report.location_change,
+                target,
+                &path,
+                &location,
+                known.item_id,
+            );
+            if report.relocated_from.is_some() {
+                known.path = location.path.clone();
+            }
+        }
     }
     if let Some(known) = &known {
         report.item_id = Some(known.item_id);
-        sources.push(SourceResult {
-            source: SourceKind::Database,
-            path: known.path.clone(),
-            expected: known.digests.clone(),
-            expected_size: Some(known.size),
-            reference_created_at: Some(known.created_at.clone()),
-            outcome: SourceOutcome::NotCompared,
-            detail: None,
-            notes: Vec::new(),
-        });
+        sources.push(database_source(known));
     }
     // Without a status of its own in the database, a file is looked up by
     // content there: it may be a known file that moved (R5).
-    let look_up_content = known.is_none() && db.is_some();
+    let mut look_up_content = known.is_none() && db.is_some();
     let without_reference = |sources: &[SourceResult]| {
         if sources.is_empty() {
             VerifyStatus::NoReference
@@ -1115,6 +1186,31 @@ pub(crate) fn verify_against(
     report.digests = hashed.digests.clone();
     report.observed_mtime = hashed.modified.map(timestamp::from_system);
 
+    // Locations followed: a known content missing from its place is that
+    // item, moved here. It is attached before the comparison, which then
+    // says what it would have said at its former place.
+    let mut found_before: Option<ContentFinding> = None;
+    if look_up_content
+        && options.follow_moves
+        && let Some(target) = db
+    {
+        match content::find(target.store, &location.file_name, None, &hashed) {
+            Ok(mut finding) => {
+                match follow::content(target.store, &path, &location, &hashed, &mut finding) {
+                    Some((attached, from)) => {
+                        report.item_id = Some(attached.item_id);
+                        report.relocated_from = Some(from);
+                        sources.push(database_source(&attached));
+                        known = Some(attached);
+                        look_up_content = false;
+                    }
+                    None => found_before = Some(finding),
+                }
+            }
+            Err(problem) => tracing::warn!(%problem, "content not looked up"),
+        }
+    }
+
     for source in sources
         .iter_mut()
         .filter(|s| s.outcome != SourceOutcome::Invalid)
@@ -1157,12 +1253,16 @@ pub(crate) fn verify_against(
                 VerifyStatus::Mismatch | VerifyStatus::Conflict
             ))
     {
-        match content::find(
-            target.store,
-            &location.file_name,
-            known.as_ref().map(|k| k.item_id),
-            &hashed,
-        ) {
+        let found = match found_before {
+            Some(finding) => Ok(finding),
+            None => content::find(
+                target.store,
+                &location.file_name,
+                known.as_ref().map(|k| k.item_id),
+                &hashed,
+            ),
+        };
+        match found {
             Ok(finding) => {
                 if !finding.same_content.is_empty() || !finding.hints.is_empty() {
                     report.finding = Some(finding);
@@ -1174,7 +1274,18 @@ pub(crate) fn verify_against(
 
     // History, only for a file the database knows.
     if let (Some(target), Some(known)) = (db, &known) {
-        let detail = report.sources.iter().find_map(|s| s.detail.clone());
+        let followed = report
+            .relocated_from
+            .as_ref()
+            .map(|from| format!("location followed; previously at {from}"));
+        let detail: Vec<String> = report
+            .sources
+            .iter()
+            .find_map(|s| s.detail.clone())
+            .into_iter()
+            .chain(followed)
+            .collect();
+        let detail = (!detail.is_empty()).then(|| detail.join("; "));
         let recorded = target.store.lock().record_verification(&NewVerification {
             operation_id: target.operation_id,
             item_id: Some(known.item_id),
@@ -1227,6 +1338,20 @@ impl VerifyReport {
     }
 }
 
+/// The database reference of a file, to be compared with what is read.
+fn database_source(known: &KnownReference) -> SourceResult {
+    SourceResult {
+        source: SourceKind::Database,
+        path: known.path.clone(),
+        expected: known.digests.clone(),
+        expected_size: Some(known.size),
+        reference_created_at: Some(known.created_at.clone()),
+        outcome: SourceOutcome::NotCompared,
+        detail: None,
+        notes: Vec::new(),
+    }
+}
+
 fn computed(hashed: &HashedFile, algorithm: Algorithm) -> Option<&Digest> {
     algorithm::find(&hashed.digests, algorithm)
 }
@@ -1243,6 +1368,8 @@ fn touch(store: &SharedStore, item_id: i64, hashed: &HashedFile) {
     }
 }
 
+#[cfg(test)]
+mod follow_tests;
 #[cfg(test)]
 mod rules_tests;
 #[cfg(test)]

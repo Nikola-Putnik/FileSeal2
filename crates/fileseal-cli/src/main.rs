@@ -66,6 +66,10 @@ enum Command {
         /// reading the files.
         #[arg(long)]
         import_hash_files: bool,
+        /// Attach a file found elsewhere than recorded to its item without
+        /// asking: the database keeps its last known location.
+        #[arg(long)]
+        follow_moves: bool,
     },
     /// Verify files against their references.
     Verify {
@@ -76,6 +80,10 @@ enum Command {
         /// Ignore hash files next to the files.
         #[arg(long)]
         no_sidecar: bool,
+        /// Attach a file found elsewhere than recorded to its item without
+        /// asking: the database keeps its last known location.
+        #[arg(long)]
+        follow_moves: bool,
     },
     /// Look files up by content in a database (writes nothing).
     Search {
@@ -188,6 +196,7 @@ fn run(command: Command) -> Result<bool, String> {
             new_item,
             existing,
             import_hash_files,
+            follow_moves,
         } => {
             let options = CreateOptions {
                 algorithms: algorithms.into_iter().map(Algorithm::from).collect(),
@@ -195,6 +204,7 @@ fn run(command: Command) -> Result<bool, String> {
                 new_item,
                 existing: existing.into(),
                 import_hash_files,
+                follow_moves,
             };
             (selection, BatchAction::Create(options), db)
         }
@@ -202,9 +212,11 @@ fn run(command: Command) -> Result<bool, String> {
             selection,
             db,
             no_sidecar,
+            follow_moves,
         } => {
             let options = VerifyOptions {
                 use_sidecar: !no_sidecar,
+                follow_moves,
             };
             (selection, BatchAction::Verify(options), db)
         }
@@ -368,6 +380,9 @@ fn print_created(report: &CreateReport) -> bool {
             println!("\t\t{problem}");
         }
     }
+    if let Some(from) = &report.relocated_from {
+        println!("\tlocation followed: was recorded at {from}");
+    }
     print_finding(report.finding.as_ref());
     if let Some(problem) = &report.problem {
         println!("\t{problem}");
@@ -391,6 +406,9 @@ fn print_verified(report: &VerifyReport) -> bool {
     }
     if let Some(from) = &report.location_change {
         println!("\trecorded at {from} (drive letter changed?)");
+    }
+    if let Some(from) = &report.relocated_from {
+        println!("\tlocation followed: was recorded at {from}");
     }
     print_finding(report.finding.as_ref());
     if let Some(problem) = &report.problem {

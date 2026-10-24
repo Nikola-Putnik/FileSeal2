@@ -24,4 +24,9 @@ locationChange: string | null,
  * What the database knows about this content, when the file's own
  * location was not recorded.
  */
-finding: ContentFinding | null, };
+finding: ContentFinding | null, 
+/**
+ * Locations followed: the item was recorded at this other path, and
+ * now is at this one.
+ */
+relocatedFrom: string | null, };

@@ -14,6 +14,8 @@ export interface RunSettings {
   importHashFiles: boolean;
   useSidecar: boolean;
   useDatabase: boolean;
+  /** Create, verify: a file found elsewhere than recorded is attached without asking. */
+  followMoves: boolean;
   /** Look into subfolders. */
   recursive: boolean;
   /** Keep hidden and system files found in folders. */
@@ -30,6 +32,7 @@ export function defaultSettings(): RunSettings {
     importHashFiles: true,
     useSidecar: true,
     useDatabase: true,
+    followMoves: false,
     recursive: true,
     includeHidden: false,
     parallelVolumes: 2,
@@ -66,6 +69,7 @@ export function fromPreferences(saved: RunPreferences | null | undefined): Kept 
   settings.writeSidecar = flag(saved.writeSidecar, settings.writeSidecar);
   settings.useSidecar = flag(saved.useSidecar, settings.useSidecar);
   settings.useDatabase = flag(saved.useDatabase, settings.useDatabase);
+  settings.followMoves = flag(saved.followMoves, settings.followMoves);
   settings.recursive = flag(saved.recursive, settings.recursive);
   settings.includeHidden = flag(saved.includeHidden, settings.includeHidden);
   settings.importHashFiles = flag(saved.importHashFiles, settings.importHashFiles);
@@ -90,6 +94,7 @@ export function toPreferences(kept: Kept): RunPreferences {
     writeSidecar: settings.writeSidecar,
     useSidecar: settings.useSidecar,
     useDatabase: settings.useDatabase,
+    followMoves: settings.followMoves,
     recursive: settings.recursive,
     includeHidden: settings.includeHidden,
     parallelVolumes: settings.parallelVolumes,

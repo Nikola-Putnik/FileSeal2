@@ -57,7 +57,10 @@ impl Fixture {
         let shared = SharedStore::new(&mut self.store);
         ops::verify_file(
             path,
-            &VerifyOptions { use_sidecar: false },
+            &VerifyOptions {
+                use_sidecar: false,
+                follow_moves: false,
+            },
             Some(DbTarget {
                 store: &shared,
                 operation_id,

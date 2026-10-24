@@ -10,7 +10,9 @@
 //! - a move is only "probable" when exactly one known copy of this content
 //!   is missing from a volume that is there; a copy on a disk that is not
 //!   plugged in is not missing, just out of reach (R5);
-//! - a name or a size is a hint, never an association (R6, R7).
+//! - a name or a size is a hint, never an association (R6, R7);
+//! - a move is confirmed by the user (R8), unless locations are followed
+//!   automatically: then `automatic_choice` says which item moved.
 
 use serde::Serialize;
 use ts_rs::TS;
@@ -91,20 +93,42 @@ pub fn moved_from(same_content: &[Candidate]) -> Option<&Candidate> {
     }
 }
 
+/// R8 waived (locations followed automatically): the item a file is
+/// attached to without asking. The only missing one; among several missing
+/// ones (ambiguous: all have this content, so any would verify the same),
+/// the one with the file's name, else the oldest. None when no item is
+/// missing: the file is then another copy, or an unknown content.
+pub fn automatic_choice<'a>(
+    file_name: &str,
+    same_content: &'a [Candidate],
+) -> Option<&'a Candidate> {
+    let missing: Vec<&Candidate> = same_content
+        .iter()
+        .filter(|c| c.presence == Presence::Missing)
+        .collect();
+    let named = missing
+        .iter()
+        .copied()
+        .filter(|c| same_name(&c.path, file_name))
+        .min_by_key(|c| c.item_id);
+    named.or_else(|| missing.into_iter().min_by_key(|c| c.item_id))
+}
+
 /// R6, R7: items worth showing as hints for a file whose content is not
 /// known: same name (whatever the folder), but a different content. Never
 /// associated automatically; the user may attach one by hand.
 pub fn hints<'a>(file_name: &str, by_name: &'a [Candidate]) -> Vec<&'a Candidate> {
-    let wanted = file_name.to_lowercase();
     by_name
         .iter()
-        .filter(|c| {
-            c.path
-                .rsplit(['\\', '/'])
-                .next()
-                .is_some_and(|name| name.to_lowercase() == wanted)
-        })
+        .filter(|c| same_name(&c.path, file_name))
         .collect()
+}
+
+/// Whether the last part of `path` is `file_name`, ignoring case.
+fn same_name(path: &str, file_name: &str) -> bool {
+    path.rsplit(['\\', '/'])
+        .next()
+        .is_some_and(|name| name.to_lowercase() == file_name.to_lowercase())
 }
 
 #[cfg(test)]
@@ -175,6 +199,36 @@ mod tests {
         ];
         assert_eq!(classify(None, &same), ContentOutcome::Ambiguous);
         assert!(moved_from(&same).is_none(), "the user chooses");
+    }
+
+    #[test]
+    fn r8_waived_the_automatic_choice() {
+        let named = |item_id, name: &str, presence| Candidate {
+            path: format!(r"E:\Old\{name}"),
+            ..candidate(item_id, presence)
+        };
+        // The only missing item, whatever its name.
+        let same = [
+            named(1, "a.mkv", Presence::Present),
+            named(2, "b.mkv", Presence::Missing),
+        ];
+        assert_eq!(automatic_choice("c.mkv", &same).unwrap().item_id, 2);
+        // Several missing: the one with this name, else the oldest.
+        let same = [
+            named(5, "b.mkv", Presence::Missing),
+            named(3, "a.mkv", Presence::Missing),
+            named(4, "A.MKV", Presence::Missing),
+        ];
+        assert_eq!(automatic_choice("a.mkv", &same).unwrap().item_id, 3);
+        assert_eq!(automatic_choice("b.mkv", &same).unwrap().item_id, 5);
+        assert_eq!(automatic_choice("c.mkv", &same).unwrap().item_id, 3);
+        // None missing: a copy, never attached (nor one out of reach).
+        let same = [
+            named(1, "a.mkv", Presence::Present),
+            named(2, "a.mkv", Presence::VolumeUnavailable),
+        ];
+        assert!(automatic_choice("a.mkv", &same).is_none());
+        assert!(automatic_choice("a.mkv", &[]).is_none());
     }
 
     #[test]

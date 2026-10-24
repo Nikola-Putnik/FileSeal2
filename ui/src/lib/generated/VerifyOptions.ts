@@ -4,4 +4,9 @@ export type VerifyOptions = {
 /**
  * Look for `file.<algo>` next to the file.
  */
-useSidecar: boolean, };
+useSidecar: boolean, 
+/**
+ * A file found elsewhere than recorded is attached to its item without
+ * asking (`follow`).
+ */
+followMoves: boolean, };

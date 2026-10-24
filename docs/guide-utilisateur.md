@@ -119,6 +119,12 @@ Pour vérifier les fichiers listés dans un fichier de hash (`.sha256`, `.md5`, 
 
 **Action** : **Rechercher**, avec une base ouverte. Pour chaque fichier, FileSeal dit si la base connaît déjà ce contenu, et où : connu ici, probablement déplacé ici, copie d'un fichier connu… C'est utile pour un fichier retrouvé dont on ne sait plus d'où il vient, ou après avoir réorganisé des dossiers.
 
+### 4. Fichiers déplacés : les suivre automatiquement
+
+Par défaut, un fichier déplacé, renommé ou retrouvé sous une autre lettre de lecteur n'est rattaché à sa référence qu'après votre confirmation ([Décider](#décider)). Si seule compte pour vous la vérification des contenus, et non l'endroit où sont les fichiers, cochez dans les **Réglages** (Créer ou Vérifier) **Fichiers déplacés : les suivre automatiquement**. FileSeal rattache alors ces fichiers de lui-même, puis crée ou vérifie leurs références : la base garde simplement leur dernier emplacement connu. Le détail du fichier l'indique (« Emplacement suivi »), et l'ancien emplacement reste dans l'historique.
+
+Une **copie** n'est jamais rattachée : si le fichier d'origine est toujours à sa place, ou sur un disque non branché, le fichier trouvé ailleurs reste une copie distincte. Un fichier renommé **et** modifié n'est pas rattaché non plus : rien ne dit d'où il vient.
+
 ## La liste des fichiers
 
 - **Les dossiers sont parcourus avec leurs sous-dossiers.** Ne sont pas retenus, avec leur raison dans l'onglet **Écartés** :
@@ -204,6 +210,8 @@ Les décisions se prennent pour un fichier, dans son **Détail**, ou **pour tous
 - **Rattacher malgré un contenu différent** (un seul fichier à la fois) : pour un fichier renommé **et** modifié, retrouvé grâce à un indice de nom.
 - **C'est une autre copie** : une nouvelle référence, indépendante.
 - **Mettre à jour les emplacements** : fichiers retrouvés sur le même disque sous une autre lettre.
+
+Avec **les fichiers déplacés suivis automatiquement**, Rattacher et Mettre à jour les emplacements se font sans vous être demandés, sauf pour une copie.
 
 ## Rapport
 

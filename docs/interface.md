@@ -22,6 +22,7 @@ L'écran Fichiers, de haut en bas :
 2. **Action** (Créer une référence · Vérifier · Rechercher) et le bouton **Réglages**. Il résume les réglages en cours (« SHA-256 · fichiers de hash + base · référencés sautés ») et les déplie en un panneau teinté, au-dessus de la liste, limité à 40 % de la hauteur. **Les réglages et l'état du panneau sont gardés** d'un lancement à l'autre (`settings.json`, `run`) ; une valeur absente ou incohérente reprend sa valeur par défaut. Les réglages :
    - Créer : algorithmes (SHA-256 coché ; MD5 avec la mention « compatibilité ») et destinations (fichier de hash à côté de chaque fichier, base active). **Fichiers déjà référencés** : les sauter sans les relire s'ils ont tous les algorithmes cochés (par défaut), ou s'ils ont une référence quelle qu'elle soit, ou les relire ; et, pour ceux qui sont sautés, ajouter leurs fichiers de hash à la base active ([formats-hash.md](formats-hash.md)).
    - Vérifier : références à consulter (fichiers de hash, base active).
+   - Créer et Vérifier : **Fichiers déplacés : les suivre automatiquement** (décoché par défaut ; grisé sans base active modifiable). Le bouton le résume par « déplacements suivis ». Règles : [rapprochement.md](rapprochement.md#suivi-automatique-des-emplacements).
    - Rechercher : la base active.
    - Sélection : sous-dossiers, fichiers cachés et système, nombre de disques lus en même temps (1 à 4).
 3. **Barre de la liste** :

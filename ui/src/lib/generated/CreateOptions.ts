@@ -20,4 +20,9 @@ existing: ExistingReferences,
  * A skipped file unknown to the database: its hash files are recorded
  * there as an imported reference, still without reading it.
  */
-importHashFiles: boolean, };
+importHashFiles: boolean, 
+/**
+ * A file found elsewhere than recorded is attached to its item without
+ * asking (`follow`).
+ */
+followMoves: boolean, };

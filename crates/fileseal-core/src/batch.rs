@@ -806,7 +806,10 @@ impl Batch<'_> {
                 // reference; the file's own hash files are not consulted.
                 Some(listed) => ops::verify_against(
                     &file.path,
-                    &VerifyOptions { use_sidecar: false },
+                    &VerifyOptions {
+                        use_sidecar: false,
+                        follow_moves: options.follow_moves,
+                    },
                     vec![listed.source()],
                     self.db,
                     self.control,

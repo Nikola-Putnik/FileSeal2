@@ -65,7 +65,7 @@ Mises à jour à chaque étape. Les limites prévues pour être levées dans une
 
 - **Lecteurs d'écran** : la structure a été vérifiée dans l'arbre d'accessibilité de WebView2 (rôles, noms, états), mais pas encore à l'oreille avec le Narrateur ni NVDA (absent de ce PC). Procédure dans [tests-build-livraison.md](tests-build-livraison.md).
 - **Contraste élevé** : vérifié en niveaux de gris, pas encore avec un vrai thème de contraste de Windows (même procédure).
-- **Réglages gardés** (2.3) : algorithmes, destinations, fichiers déjà référencés, options de sélection, « Seulement ces extensions », nombre de disques et panneau déplié ou non. L'action (Créer, Vérifier, Rechercher) ne l'est pas : chaque lancement commence sur Créer. Le filtre par puces (extensions décochées une à une) ne l'est pas non plus, car il dépend des dossiers ajoutés.
+- **Réglages gardés** (2.3) : algorithmes, destinations, fichiers déjà référencés, suivi des fichiers déplacés, options de sélection, « Seulement ces extensions », nombre de disques et panneau déplié ou non. L'action (Créer, Vérifier, Rechercher) ne l'est pas : chaque lancement commence sur Créer. Le filtre par puces (extensions décochées une à une) ne l'est pas non plus, car il dépend des dossiers ajoutés.
 - **Détail à côté de la liste** à partir de 1 400 px de large, en pixels CSS : une fenêtre de 1 920 pixels à l'échelle 125 % en fait 1 536. En dessous, le détail passe sous la liste et prend au plus 40 % de la hauteur.
 - **Noms coupés au milieu** : les 14 derniers caractères au plus restent visibles. Dans une colonne très étroite, il reste peu du début. Le nom entier est dans l'info-bulle et le détail.
 - **Changer « sous-dossiers » ou « fichiers cachés »** parcourt de nouveau les dossiers ajoutés et annule les retraits et déplacements faits à la main (un message le dit).
@@ -85,6 +85,10 @@ Mises à jour à chaque étape. Les limites prévues pour être levées dans une
 - MD5 et SHA-256 sont calculés l'un après l'autre sur le même cœur : environ 540 Mio/s ensemble, contre 1 800 Mio/s pour SHA-256 seul. Cela ne compte que sur un SSD rapide ; voir [performances.md](performances.md).
 - FileSeal **lit** les fichiers de hash qui listent plusieurs fichiers (`SHA256SUMS`), mais n'en **écrit** pas encore : il écrit un fichier de hash par fichier (évolution 2 du cadrage).
 - Un fichier de hash est lu en entier en mémoire ; au-delà de 16 Mio (environ 150 000 lignes), il est refusé.
+- **Suivi automatique des emplacements** :
+  - un fichier déplacé **depuis un disque qui n'est plus branché** n'est pas suivi : rien ne le distingue d'une copie, et l'original est peut-être toujours sur ce disque. Il reste une copie distincte ; « Réaffecter » ou « Rattacher » le règlent ;
+  - entre plusieurs éléments identiques disparus, le choix (même nom, sinon le plus ancien) peut ne pas être celui qu'aurait fait l'utilisateur. Le résultat des vérifications n'en dépend pas, seul l'historique ;
+  - à la création, le rattachement n'ajoute pas de vérification à l'historique : seul l'ancien emplacement y reste. À la vérification, la vérification le mentionne.
 
 ## Base de données
 

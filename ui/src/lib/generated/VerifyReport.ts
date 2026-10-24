@@ -36,4 +36,9 @@ locationChange: string | null,
  * What the database knows about this content, when its location is
  * not recorded (R5) or when it differs from its reference (R4).
  */
-finding: ContentFinding | null, };
+finding: ContentFinding | null, 
+/**
+ * Locations followed: the item was recorded at this other path, and
+ * now is at this one.
+ */
+relocatedFrom: string | null, };

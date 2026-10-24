@@ -44,6 +44,7 @@ pub struct RunPreferences {
     pub write_sidecar: Option<bool>,
     pub use_sidecar: Option<bool>,
     pub use_database: Option<bool>,
+    pub follow_moves: Option<bool>,
     pub recursive: Option<bool>,
     pub include_hidden: Option<bool>,
     pub parallel_volumes: Option<u8>,

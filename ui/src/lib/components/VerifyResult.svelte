@@ -61,6 +61,9 @@
     {t().finding.updateLocation(report.locationChange)}
   </button>
 {/if}
+{#if report.relocatedFrom}
+  <p>{t().finding.followed(report.relocatedFrom)}</p>
+{/if}
 {#if report.finding}
   <FindingPanel finding={report.finding} {busy} {onattach} />
 {/if}

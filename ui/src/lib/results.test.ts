@@ -33,6 +33,7 @@ function verified(path: string, changes: Partial<VerifyReport>): EntryOutcome {
       verificationId: 70,
       locationChange: null,
       finding: null,
+      relocatedFrom: null,
       ...changes,
     },
   };

@@ -71,7 +71,10 @@ fn create(sidecar: bool) -> BatchOptions {
 
 fn verify() -> BatchOptions {
     BatchOptions {
-        action: BatchAction::Verify(VerifyOptions { use_sidecar: true }),
+        action: BatchAction::Verify(VerifyOptions {
+            use_sidecar: true,
+            follow_moves: false,
+        }),
         parallel_volumes: 2,
     }
 }

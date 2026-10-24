@@ -350,7 +350,10 @@ pub fn verify(
             (Some(target), Ok(_)) if !stopped => {
                 let report = verify_against(
                     target,
-                    &VerifyOptions { use_sidecar: false },
+                    &VerifyOptions {
+                        use_sidecar: false,
+                        follow_moves: false,
+                    },
                     vec![source],
                     db,
                     control,
@@ -389,6 +392,7 @@ fn unchecked(path: String, status: VerifyStatus, source: SourceResult) -> Verify
         verification_id: None,
         location_change: None,
         finding: None,
+        relocated_from: None,
     }
 }
 

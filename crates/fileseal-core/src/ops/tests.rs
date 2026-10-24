@@ -60,6 +60,7 @@ impl Fixture {
             path,
             &VerifyOptions {
                 use_sidecar: sidecar,
+                follow_moves: false,
             },
             target,
             &Control::new(),
@@ -479,7 +480,10 @@ fn a_cancelled_verification_is_not_history() {
     let control = Control::new();
     let report = verify_file(
         &film,
-        &VerifyOptions { use_sidecar: true },
+        &VerifyOptions {
+            use_sidecar: true,
+            follow_moves: false,
+        },
         Some(DbTarget {
             store: &SharedStore::new(&mut fx.store),
             operation_id,

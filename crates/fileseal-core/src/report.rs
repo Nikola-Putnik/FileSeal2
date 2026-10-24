@@ -111,6 +111,7 @@ fn row(entry: &ReportEntry) -> Vec<String> {
                 details.push(format!("database: {}", code(&database.outcome)));
             }
             details.extend(report.problem.iter().map(ToString::to_string));
+            details.extend(followed(report.relocated_from.as_ref()));
             details.extend(finding_detail(report.finding.as_ref()));
             (
                 "create",
@@ -146,6 +147,7 @@ fn row(entry: &ReportEntry) -> Vec<String> {
                     .iter()
                     .map(|from| format!("recorded at {from}")),
             );
+            details.extend(followed(report.relocated_from.as_ref()));
             details.extend(finding_detail(report.finding.as_ref()));
             (
                 "verify",
@@ -188,6 +190,11 @@ fn row(entry: &ReportEntry) -> Vec<String> {
         digest(&expected, Algorithm::Md5),
         detail.join(" | "),
     ]
+}
+
+/// A location followed automatically, from where it was recorded.
+fn followed(from: Option<&String>) -> Option<String> {
+    from.map(|from| format!("location followed from {from}"))
 }
 
 fn finding_detail(finding: Option<&ContentFinding>) -> Vec<String> {
@@ -270,6 +277,7 @@ mod tests {
             verification_id: Some(1),
             location_change: None,
             finding: None,
+            relocated_from: None,
         }
     }
 

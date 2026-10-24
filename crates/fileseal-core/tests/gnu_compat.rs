@@ -97,7 +97,10 @@ fn we_read_what_sha256sum_writes() {
     std::fs::write(dir.path().join(format!("{name}.sha256")), &output.stdout).unwrap();
     let report = fileseal_core::ops::verify_file(
         &dir.path().join(name),
-        &fileseal_core::ops::VerifyOptions { use_sidecar: true },
+        &fileseal_core::ops::VerifyOptions {
+            use_sidecar: true,
+            follow_moves: false,
+        },
         None,
         &Control::new(),
         &mut |_, _| {},

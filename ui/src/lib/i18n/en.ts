@@ -305,6 +305,7 @@ export const en = {
       references: (sources: string) => `references: ${sources}`,
       noSubfolders: 'without subfolders',
       hidden: 'hidden files included',
+      followMoves: 'moves followed',
     },
     existing: {
       title: 'Files already referenced',
@@ -313,6 +314,11 @@ export const en = {
       read: 'Read them again: check their references and complete them',
       importHashFiles: 'Add their hash files to the active database, without reading',
       hint: 'A skipped file is not checked: that is what Verify does.',
+    },
+    follow: {
+      title: 'Moved files',
+      label: 'Follow them automatically',
+      hint: 'A file found elsewhere than recorded (moved, renamed, drive letter changed) is attached to its reference without asking: the database keeps its last known location. A copy is never attached.',
     },
   },
 
@@ -671,6 +677,7 @@ export const en = {
     updateLocation: (from: string) => `Recorded at “${from}”: update the location`,
     createAnyway: 'It is another copy: create a new reference',
     attached: (from: string) => `Attached: this file is now the one recorded at “${from}”.`,
+    followed: (from: string) => `Location followed: it was recorded at “${from}”.`,
   },
 
   accept: {

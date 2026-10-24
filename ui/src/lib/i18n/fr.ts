@@ -312,6 +312,7 @@ export const fr: Messages = {
       references: (sources: string) => `références : ${sources}`,
       noSubfolders: 'sans les sous-dossiers',
       hidden: 'fichiers cachés inclus',
+      followMoves: 'déplacements suivis',
     },
     listedReferences:
       'Les fichiers ajoutés depuis un fichier de hash sont vérifiés avec leur ligne dans celui-ci, et seulement elle.',
@@ -323,6 +324,11 @@ export const fr: Messages = {
       read: 'Les relire : contrôler leurs références et les compléter',
       importHashFiles: 'Ajouter leurs fichiers de hash à la base active, sans relire',
       hint: 'Un fichier sauté n’est pas contrôlé : c’est le rôle de Vérifier.',
+    },
+    follow: {
+      title: 'Fichiers déplacés',
+      label: 'Les suivre automatiquement',
+      hint: 'Un fichier trouvé ailleurs que prévu (déplacé, renommé, lettre de lecteur changée) est rattaché à sa référence sans confirmation : la base garde son dernier emplacement connu. Une copie n’est jamais rattachée.',
     },
   },
 
@@ -693,6 +699,7 @@ export const fr: Messages = {
     createAnyway: 'C’est une autre copie : créer une nouvelle référence',
     attached: (from: string) =>
       `Rattaché : ce fichier est désormais celui enregistré à « ${from} ».`,
+    followed: (from: string) => `Emplacement suivi : il était enregistré à « ${from} ».`,
   },
 
   accept: {

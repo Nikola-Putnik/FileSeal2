@@ -5,13 +5,13 @@ Comment FileSeal relie un fichier qu'il a en main à ce que la base connaît. Co
 - `ops/content.rs` : la recherche dans la base ;
 - `ops.rs`, `ops/search.rs`, `ops/decide.rs` : l'application des règles.
 
-Scénarios testés : `ops/rules_tests.rs`.
+Scénarios testés : `ops/rules_tests.rs`, et `ops/follow_tests.rs` pour le suivi automatique.
 
 ## Principes
 
 - **Un chemin ne prouve jamais l'identité ; un hash, si.** Le chemin (R1) ou la place sur le volume (R2) servent à trouver la référence *attendue*. C'est la comparaison des hash qui décide.
 - **Une copie physique = un élément.** Deux fichiers au même contenu (une sauvegarde) sont deux éléments distincts, reliés par leur contenu.
-- **Rien n'est rattaché ni accepté sans l'utilisateur.** FileSeal propose (« déplacement probable », « mettre à jour l'emplacement ») ; l'utilisateur décide. Chaque décision est enregistrée (R8).
+- **Rien n'est rattaché ni accepté sans l'utilisateur.** FileSeal propose (« déplacement probable », « mettre à jour l'emplacement ») ; l'utilisateur décide. Chaque décision est enregistrée (R8). Seule exception, choisie d'avance dans les réglages : le [suivi automatique des emplacements](#suivi-automatique-des-emplacements).
 - **Une vérification n'écrit jamais de référence**, et une recherche n'écrit rien du tout.
 
 ## Les règles
@@ -37,6 +37,25 @@ Un élément dont l'emplacement est **sur un volume absent** (disque débranché
 
 - Contenu d'un élément **présent ailleurs** : c'est une autre copie. La référence est créée, avec la mention « copie d'un fichier connu ».
 - Contenu d'un élément **manquant** (déplacement probable) ou **ambigu** : **rien n'est écrit en base**, et le statut est « Décision requise ». L'utilisateur choisit « Il a été déplacé ici : rattacher » ou « C'est une autre copie : créer une nouvelle référence ». Les fichiers de hash à côté du fichier sont écrits normalement.
+
+### Suivi automatique des emplacements
+
+Réglage **Fichiers déplacés : les suivre automatiquement**, pour Créer et Vérifier, désactivé par défaut. Il s'adresse à qui veut seulement créer et vérifier des références, sans se soucier de l'endroit où sont les fichiers : la base garde le **dernier emplacement connu** de chacun. Code : `ops/follow.rs`, `matching::automatic_choice`, tests dans `ops/follow_tests.rs`.
+
+Les règles qui trouvent l'élément ne changent pas. Seule la confirmation de R8 est remplacée par le choix fait d'avance :
+
+| Cas | Sans le suivi | Avec le suivi |
+|---|---|---|
+| **R2**, lettre de lecteur changée | Mise à jour proposée | Chemin mis à jour, **avant** la lecture : avec « sauter les fichiers déjà référencés », le fichier n'est pas relu. |
+| **R5**, déplacement probable (un seul élément de même contenu manque) | Rattacher, à confirmer ; à la création, « Décision requise » | Rattaché, puis comparé (à la vérification) ou complété (à la création). |
+| **R5**, ambigu (plusieurs éléments de même contenu manquent) | L'utilisateur choisit | Rattaché à celui qui porte **le même nom**, sinon au **plus ancien**. Tous ont ce contenu : la vérification donne le même résultat quel que soit l'élément choisi ; seul l'historique en dépend. |
+| Copie d'un fichier connu (l'élément est à sa place, ou sur un disque non branché) | Nouvel élément à la création | **Inchangé** : une copie n'est jamais rattachée. |
+| Contenu inconnu, renommé **et** modifié (R7) | Indices de nom | **Inchangé** : rien n'est rattaché. |
+
+- **Rechercher** n'écrit toujours rien, avec ou sans le suivi.
+- **« C'est une autre copie »** (nouvel élément demandé) l'emporte sur le suivi.
+- **Trace** : l'ancien emplacement reste dans l'historique de l'élément, avec ses dates. À la vérification, l'historique note aussi « location followed; previously at … ». Le résultat du fichier l'indique (« Emplacement suivi »), le rapport CSV aussi (`location followed from …`).
+- **Plusieurs fichiers d'un même lot** pour un même élément (deux copies identiques déplacées ensemble) : le déplacement n'est enregistré que si l'élément est toujours à l'emplacement vu manquant. Sinon le contenu est cherché de nouveau, et le fichier va à un autre élément manquant, ou reste une copie.
 
 ## Les décisions
 

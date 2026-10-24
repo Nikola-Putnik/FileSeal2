@@ -36,6 +36,8 @@ export function settingsSummary(
     ].filter((d): d is string => d !== null);
     parts.push(words.references(sources.join(' + ') || words.none));
   }
+  // Following moves writes to the database: nothing to follow without one.
+  if (action !== 'search' && database && settings.followMoves) parts.push(words.followMoves);
   if (!settings.recursive) parts.push(words.noSubfolders);
   if (settings.includeHidden) parts.push(words.hidden);
   return parts.join(' · ');
