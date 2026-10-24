@@ -152,6 +152,20 @@
     active = next?.id ?? null;
   }
 
+  /** Nothing in the list: neither files nor what was left out. */
+  let empty = $derived(
+    included.length + selection.exclusions.length + selection.problems.length === 0,
+  );
+
+  /** Every file out of the list, with the results of the last batch. */
+  function clear() {
+    selection.clear();
+    run.clear();
+    selected = new Set();
+    sort = null;
+    active = null;
+  }
+
   function move(direction: -1 | 1) {
     selection.move(selected, direction);
     sort = null;
@@ -227,6 +241,17 @@
       <button type="button" onclick={remove} disabled={busy || selected.size === 0}>
         {t().list.remove}
       </button>
+      {#if withResults > 0}
+        <!-- Results would be lost: asked first. -->
+        <Confirm
+          label={t().list.clear}
+          question={t().list.clearConfirm}
+          disabled={busy}
+          onconfirm={clear}
+        />
+      {:else}
+        <button type="button" onclick={clear} disabled={busy || empty}>{t().list.clear}</button>
+      {/if}
       <Popover title={t().list.more} bind:open={moreOpen} align="end">
         {#snippet label()}<span aria-hidden="true">⋯</span>{/snippet}
         <div class="more">
@@ -252,18 +277,6 @@
               {/each}
             </select>
           </label>
-          <Confirm
-            label={t().list.clear}
-            question={t().list.clearConfirm}
-            disabled={busy || included.length + selection.exclusions.length === 0}
-            onconfirm={() => {
-              selection.clear();
-              run.clear();
-              selected = new Set();
-              sort = null;
-              moreOpen = false;
-            }}
-          />
         </div>
       </Popover>
     {/if}
