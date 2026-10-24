@@ -1,0 +1,8 @@
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ico binary
+*.png binary
+*.icns binary
+# Hash-file fixtures keep their exact bytes (CRLF, BOM, cp1252).
+crates/fileseal-core/tests/fixtures/** -text

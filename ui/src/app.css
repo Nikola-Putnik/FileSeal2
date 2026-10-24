@@ -1,0 +1,157 @@
+/* Colours are tokens only; dark theme follows the system. Status colours are
+   never the only signal: every status also has an icon and a text. */
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #1c2430;
+  --muted: #5b6573;
+  --border: #d5dbe3;
+  --accent: #1f5f99;
+  --on-accent: #ffffff;
+  --focus: #e08a00;
+  --ok: #1e7a3c;
+  --warn: #a35f00;
+  --error: #b42318;
+  --neutral: #5b6573;
+  --on-tone: #ffffff;
+  --mono: 'Cascadia Mono', Consolas, monospace;
+  /* Panels that float (menus) and areas set apart (settings, detail). */
+  --shadow: 0 8px 28px rgb(0 0 0 / 0.16);
+  --panel: #eef1f5;
+  font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15191f;
+    --surface: #1d232b;
+    --text: #e6eaf0;
+    --muted: #9aa5b4;
+    --border: #36404c;
+    --accent: #5ea2e0;
+    --on-accent: #0b1622;
+    --focus: #ffb444;
+    --ok: #3fa864;
+    --warn: #d89a2b;
+    --error: #e5584d;
+    --neutral: #8792a1;
+    --on-tone: #0b1622;
+    --shadow: 0 8px 28px rgb(0 0 0 / 0.5);
+    --panel: #191e25;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* The window does not scroll as a page: each area scrolls on its own. */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h2 {
+  font-size: 1.05rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+h3 {
+  font-size: 0.95rem;
+  margin: 1rem 0 0.4rem;
+}
+
+button {
+  font: inherit;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.path {
+  color: var(--muted);
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+.problem {
+  color: var(--error);
+}
+
+.notice {
+  color: var(--warn);
+}
+
+.headline {
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.details {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.details li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.details li > span:first-child {
+  margin-right: 0.4rem;
+}
+
+/* Read by screen readers, not shown. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

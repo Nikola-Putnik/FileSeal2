@@ -1,0 +1,7 @@
+This file makes FileSeal portable: its settings, logs and WebView2 data
+are kept in the "data" folder next to FileSeal.exe, nothing in your profile.
+Delete it to use FileSeal as if it were installed.
+
+Ce fichier rend FileSeal portable : ses réglages, journaux et données
+WebView2 sont gardés dans le dossier "data" à côté de FileSeal.exe, rien
+dans votre profil. Supprimez-le pour utiliser FileSeal comme s'il était installé.

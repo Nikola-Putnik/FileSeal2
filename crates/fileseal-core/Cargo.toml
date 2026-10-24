@@ -1,0 +1,30 @@
+[package]
+name = "fileseal-core"
+description = "Hashing, hash files, reference databases and matching rules for FileSeal, independent of any UI."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+encoding_rs = "0.8.42"
+md-5 = "0.11.0"
+rusqlite = { version = "0.40.2", features = ["bundled", "backup"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+sha2 = "0.11.1"
+tempfile = "3.27.0"
+thiserror = "2.0.21"
+time = { version = "0.3.55", features = ["formatting", "parsing", "macros"] }
+tracing = "0.1.44"
+ts-rs = "12.0.1"
+uuid = { version = "1.28.0", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = "3.27.0"
+
+[lints]
+workspace = true
+
+[target."cfg(windows)".dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_NetworkManagement_WNet", "Win32_System_Power"] }
