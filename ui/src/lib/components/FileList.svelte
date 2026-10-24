@@ -41,6 +41,8 @@
     onaddfiles,
     onaddfolder,
     onopen,
+    detailShown = false,
+    ondetail,
   }: {
     selection: Selection;
     run: BatchRun;
@@ -58,6 +60,9 @@
     onaddfolder: () => void;
     /** Enter or double-click on a row: its details. */
     onopen: (row: Row) => void;
+    detailShown?: boolean;
+    /** A narrow window: the detail is opened and closed by a button. */
+    ondetail?: () => void;
   } = $props();
 
   type Tab = 'files' | 'excluded' | 'problems';
@@ -290,6 +295,15 @@
           >{/if}
         {#if selectedCount > 0}<span class="muted">· {t().list.selected(selectedCount)}</span>{/if}
       </p>
+      {#if ondetail}
+        <button
+          type="button"
+          class="detail-toggle"
+          aria-expanded={detailShown}
+          disabled={active === null}
+          onclick={ondetail}>{t().results.details}</button
+        >
+      {/if}
     {/if}
   </div>
 
@@ -517,6 +531,13 @@
     border-color: var(--accent);
     box-shadow: inset 0 0 0 1px var(--accent);
     text-decoration: underline;
+  }
+  .detail-toggle {
+    flex: none;
+    padding: 0.2rem 0.7rem;
+  }
+  .detail-toggle[aria-expanded='true'] {
+    border-color: var(--accent);
   }
   .counts {
     flex: 1 1 auto;

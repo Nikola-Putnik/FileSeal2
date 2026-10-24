@@ -15,6 +15,7 @@
   import type { VerifyStatus } from '../generated/VerifyStatus';
   import type { Column } from '../grid';
   import { t } from '../i18n/index.svelte';
+  import { wideWindow } from '../layout.svelte';
   import { ICONS, VERIFY_ORDER, verifyStatus, type StatusLabel } from '../labels';
   import Confirm from './Confirm.svelte';
   import Digests from './Digests.svelte';
@@ -41,6 +42,18 @@
   let problem = $state<unknown>(null);
   let active = $state<number | null>(null);
   let history = $state.raw<ItemHistory | null>(null);
+  // As the detail of the Files screen: below the list (a narrow window),
+  // the history opens only when asked for.
+  let historyAsked = $state(false);
+  let showHistory = $derived(history !== null && (wideWindow.current || historyAsked));
+  $effect(() => {
+    if (active === null) historyAsked = false;
+  });
+
+  function closeHistory() {
+    historyAsked = false;
+    if (wideWindow.current) active = null;
+  }
   let listed = $state<Listed>('active');
   let selected = $state.raw<Set<number>>(new Set());
   let working = $state(false);
@@ -170,6 +183,15 @@
         </label>
       {/each}
     </div>
+    {#if !wideWindow.current}
+      <button
+        type="button"
+        class="history-toggle"
+        aria-expanded={showHistory}
+        disabled={active === null}
+        onclick={() => (historyAsked = !historyAsked)}>{t().dbScreen.history}</button
+      >
+    {/if}
     {#if page}
       <span class="muted" role="status">{t().dbScreen.shown(page.rows.length, page.total)}</span>
       <div class="changes">
@@ -226,7 +248,10 @@
         bind:active
         {selected}
         onselect={(keys) => (selected = keys)}
-        onopen={() => setTimeout(() => document.getElementById('history-title')?.focus())}
+        onopen={() => {
+          historyAsked = true;
+          setTimeout(() => document.getElementById('history-title')?.focus());
+        }}
         empty={listed === 'retired' ? t().dbScreen.noRetired : t().dbScreen.noReference}
       >
         {#snippet cell(row: ReferenceRow, column: string)}
@@ -248,7 +273,7 @@
         {/snippet}
       </VirtualGrid>
     {/if}
-    {#if history}
+    {#if history && showHistory}
       <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
       <aside
         class="history"
@@ -266,7 +291,7 @@
             type="button"
             class="close"
             title={t().results.closeDetails}
-            onclick={() => (active = null)}
+            onclick={closeHistory}
           >
             <span aria-hidden="true">✕</span><span class="sr-only">{t().results.closeDetails}</span>
           </button>
@@ -359,6 +384,9 @@
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
+  }
+  .history-toggle[aria-expanded='true'] {
+    border-color: var(--accent);
   }
   .listed {
     display: flex;

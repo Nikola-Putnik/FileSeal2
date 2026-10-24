@@ -12,7 +12,7 @@ On y accède par l'onglet **Bases**, en haut de la fenêtre. L'écran Fichiers g
 Disposition (2.3) :
 - une ligne pour la base active : nom, nombre de références, version du schéma, chemin, et le menu **Fichier de la base** (renommer, afficher dans le dossier, déplacer, sauvegarder, restaurer) ;
 - deux sous-onglets : **Références** (par défaut) et **Disques** ;
-- l'historique d'une référence s'ouvre dans un volet à droite de la liste, ou en dessous si la fenêtre est étroite ;
+- l'historique d'une référence s'ouvre dans un volet à droite de la liste. Si la fenêtre est étroite, il s'ouvre en dessous, et seulement sur demande (double-clic, Entrée, bouton **Historique**) ;
 - le formulaire de réaffectation n'apparaît qu'avec **Réaffecter un dossier…**, ou **Réaffecter…** sur la ligne d'un disque.
 
 ## La base active

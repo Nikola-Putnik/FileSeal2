@@ -2,6 +2,7 @@
 
 ## À venir
 
+- **Détail moins envahissant** : dans une fenêtre étroite, où il s'ouvre sous la liste, un clic ne fait plus que choisir une ligne. Le détail s'ouvre sur demande (double-clic, Entrée, bouton « Détail »). De même pour l'historique de l'écran Bases.
 - **Puces « Afficher : »** : elles comptent les lignes encore dans la liste, en direct (pendant un lot, après un retrait, après une décision), et disparaissent quand plus aucune ligne n'a de résultat.
 
 ## 2.3.0 — 2026-10-23

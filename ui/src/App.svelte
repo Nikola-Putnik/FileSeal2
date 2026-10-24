@@ -27,6 +27,7 @@
   import type { DiscoveryOptions } from './lib/generated/DiscoveryOptions';
   import { isLocale, locale, setLocale, t, type Locale } from './lib/i18n/index.svelte';
   import { ALGORITHM_NAMES } from './lib/labels';
+  import { wideWindow } from './lib/layout.svelte';
   import { settingsSummary } from './lib/summary';
   import {
     ALL_EXTENSIONS,
@@ -56,6 +57,9 @@
   let extensionFilter = $state.raw<ExtensionFilter>(ALL_EXTENSIONS);
   /** Row whose details are shown. */
   let active = $state<number | null>(null);
+  // A narrow window has the detail below the list, taking room from it:
+  // it opens there only when asked for (Enter, double-click, its button).
+  let detailAsked = $state(false);
   let dragging = $state(false);
   /** Decisions being taken for several results. */
   let working = $state<{ done: number; total: number } | null>(null);
@@ -142,6 +146,16 @@
     active === null ? null : (selection.rows.find((row) => row.id === active) ?? null),
   );
   let activeEntry = $derived(active === null ? undefined : run.results.get(active));
+  let showDetail = $derived(activeRow !== null && (wideWindow.current || detailAsked));
+  $effect(() => {
+    if (active === null) detailAsked = false;
+  });
+
+  function closeDetail() {
+    detailAsked = false;
+    // Beside the list, the detail follows the chosen row: no row, no detail.
+    if (wideWindow.current) active = null;
+  }
   // Decisions for all results: computed once the batch is over.
   let updates = $derived(run.summary && !run.running ? locationUpdates(run.results) : []);
   let moves = $derived(run.summary && !run.running ? probableMoves(run.results) : []);
@@ -515,7 +529,7 @@
         />
       {/if}
 
-      <div class="workspace" class:with-detail={activeRow !== null}>
+      <div class="workspace" class:with-detail={showDetail}>
         <FileList
           {selection}
           {run}
@@ -528,13 +542,16 @@
           bind:active
           onaddfiles={() => void pickFiles()}
           onaddfolder={() => void pickFolder()}
+          detailShown={showDetail}
+          ondetail={wideWindow.current ? undefined : () => (detailAsked = !detailAsked)}
           onopen={(row) => {
             active = row.id;
+            detailAsked = true;
             // The pane is drawn once the row is active: focused just after.
             setTimeout(() => document.getElementById('detail-title')?.focus());
           }}
         />
-        {#if activeRow}
+        {#if activeRow && showDetail}
           <aside class="detail-pane">
             <EntryDetail
               row={activeRow}
@@ -547,7 +564,7 @@
               onupdatelocation={updateActiveLocation}
               oncreateanyway={createActiveAnyway}
               onreveal={() => void reveal()}
-              onclose={() => (active = null)}
+              onclose={closeDetail}
               onback={focusList}
             />
           </aside>

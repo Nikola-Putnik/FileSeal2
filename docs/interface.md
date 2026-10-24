@@ -33,6 +33,7 @@ L'écran Fichiers, de haut en bas :
 5. **Détail** du fichier choisi dans la liste, dans un volet à droite. Il passe sous la liste quand la fenêtre fait moins de 1 400 px de large (pixels CSS) : la liste garde alors toute sa largeur, plus utile aux noms longs que la hauteur.
    - Contenu : le chemin, « Afficher dans le dossier » (ouvre l'Explorateur, fichier sélectionné), le résultat complet et les décisions possibles pour ce fichier.
    - Entrée sur une ligne amène le focus dans le volet, Échap le ramène à la liste ; ✕ le ferme.
+   - **Sous la liste** (fenêtre étroite), il prend de la place à la liste : un clic ou les flèches ne font que choisir une ligne, et le détail s'ouvre seulement sur demande (double-clic, Entrée, ou le bouton **Détail** au bout de la ligne des onglets). Ouvert, il suit la ligne choisie jusqu'à ce qu'on le ferme.
 6. **Barre du bas**, toujours visible :
    - **avant un lot** : la phrase de confirmation, puis le bouton de lancement. Par exemple : « Vérifier 1 234 fichiers (456 Go) avec leurs fichiers de hash et la base « Films ». » Tant qu'il manque quelque chose, la phrase dit quoi (« Ajoutez d'abord des fichiers à la liste », « Cochez au moins un algorithme »…) ;
    - **pendant un lot** : la progression d'ensemble (pondérée par les octets), les boutons **Pause / Reprendre** et **Annuler**. Une ligne donne les fichiers terminés, le volume lu, le débit, le temps écoulé et restant ; une autre, le fichier lu sur chaque disque avec son pourcentage ;

@@ -82,7 +82,7 @@ Les deux se cumulent, et c'est le choix par défaut quand une base est ouverte. 
   - **?** : les raccourcis clavier ;
   - **⚙** : la langue.
 - **L'action** (Créer, Vérifier, Rechercher) et le bouton **Réglages**, qui résume les réglages en cours et les déplie au besoin. Vos réglages sont gardés d'un lancement à l'autre.
-- **La liste des fichiers** prend toute la hauteur. Le **Détail** du fichier choisi s'ouvre à côté, ou en dessous si la fenêtre est étroite. ✕ le ferme, Échap ramène à la liste.
+- **La liste des fichiers** prend toute la hauteur. Le **Détail** du fichier choisi s'ouvre à côté. Si la fenêtre est étroite, il s'ouvre en dessous, et seulement sur demande : double-clic, Entrée ou bouton **Détail**. ✕ le ferme, Échap ramène à la liste.
 - **En bas, toujours visible** :
   - avant un lot : la phrase qui dit ce qui va être fait, et le bouton de lancement ;
   - pendant : la progression ;
