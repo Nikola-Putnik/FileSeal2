@@ -163,7 +163,7 @@ Produit dans `target\release\bundle\` :
 5. **Installer et désinstaller** (procédure ci-dessous), sur une session sans droits administrateur.
 6. **Nouveautés** : une entrée dans [CHANGELOG.md](../CHANGELOG.md), en anglais comme le README (la face publique du dépôt), avec ce qui change pour l'utilisateur.
 7. **Commit et étiquette** : `git tag v<version>`.
-8. **Publication** sur https://github.com/Nikola-Putnik/FileSeal2 : `git push origin main v<version>`, puis une « release » à l'étiquette (page Releases du dépôt), avec l'installateur, le zip et leurs deux fichiers `.sha256`, et les nouveautés de `CHANGELOG.md` en texte. Sans `gh`, elle se crée par l'API REST de GitHub (`POST /repos/…/releases`, puis un envoi par fichier sur `uploads.github.com`), avec l'identifiant que Git utilise déjà pour pousser.
+8. **Publication** sur https://github.com/Nikola-Putnik/FileSeal2 : `git push origin main v<version>`, puis une « release » à l'étiquette (page Releases du dépôt), avec l'installateur, le zip et leurs deux fichiers `.sha256`, et les nouveautés de `CHANGELOG.md` en texte. Sans `gh` : `node tools/github-release.mjs v<version> <notes.md> <les quatre fichiers>`, qui passe par l'API REST de GitHub avec l'identifiant que Git utilise déjà pour pousser (jamais affiché), et refuse si l'étiquette a déjà sa release. Les notes : celles du CHANGELOG, en anglais, avec les empreintes SHA-256 des deux fichiers.
 
 ## Installer, mettre à jour, désinstaller (contrôle de livraison)
 
