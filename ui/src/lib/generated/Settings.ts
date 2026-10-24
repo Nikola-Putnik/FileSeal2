@@ -8,6 +8,10 @@ export type Settings = {
  */
 language: string | null, 
 /**
+ * Colour theme (`"light"`, `"dark"`, `"oled"`); `None` = the system's.
+ */
+theme: string | null, 
+/**
  * Most recently used first.
  */
 recentDatabases: Array<RecentDatabase>, 

@@ -61,6 +61,7 @@ export const api = {
   settingsGet: () => invoke<Settings>('settings_get'),
   settingsSetLanguage: (language: string | null) =>
     invoke<Settings>('settings_set_language', { language }),
+  settingsSetTheme: (theme: string | null) => invoke<Settings>('settings_set_theme', { theme }),
   settingsSetRun: (run: RunPreferences) => invoke<Settings>('settings_set_run', { run }),
   databaseCreate: (path: string, name: string) =>
     invoke<DatabaseInfo>('database_create', { path, name }),

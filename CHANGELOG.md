@@ -2,6 +2,7 @@
 
 ## À venir
 
+- **Thèmes** (⚙) : comme Windows (par défaut), clair, sombre, ou sombre OLED (noir pur). Contrastes vérifiés pour chacun ; listes déroulantes, cases et champs suivent le thème, la barre de titre aussi.
 - **Suivre les fichiers déplacés automatiquement** (Réglages, pour Créer et Vérifier) : un fichier déplacé, renommé ou retrouvé sous une autre lettre de lecteur est rattaché à sa référence sans confirmation, puis vérifié ou complété. La base garde son dernier emplacement connu, l'ancien reste dans l'historique. Une copie n'est jamais rattachée. Désactivé par défaut.
 - **« Exporter le rapport… »** est à côté du bilan qu'il exporte, et non plus collé au bouton de lancement. Un trait sépare les résultats de la ligne de lancement.
 - **« Vider la liste »** est à côté de « Retirer », au lieu du menu ⋯. Il ne demande confirmation que si des résultats seraient perdus.

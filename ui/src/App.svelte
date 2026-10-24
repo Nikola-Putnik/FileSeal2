@@ -46,6 +46,7 @@
   import { BatchRun, type ActionKind, type Decided } from './lib/run.svelte';
   import { defaultSettings, fromPreferences, toPreferences } from './lib/runSettings';
   import { Selection } from './lib/selection.svelte';
+  import { THEMES, applyTheme, isTheme, theme, type Theme } from './lib/theme.svelte';
 
   let view = $state<'files' | 'databases'>('files');
   let action = $state<ActionKind>('create');
@@ -362,6 +363,15 @@
     }
   }
 
+  async function changeTheme(next: Theme) {
+    applyTheme(next);
+    try {
+      await api.settingsSetTheme(next === 'system' ? null : next);
+    } catch {
+      // Only the next start is concerned: the window already uses it.
+    }
+  }
+
   /** Escape in the detail: back to the row in the list. */
   function focusList() {
     document.querySelector<HTMLElement>('#panel-files [role="grid"]')?.focus();
@@ -387,6 +397,7 @@
       .settingsGet()
       .then((saved) => {
         if (isLocale(saved.language)) setLocale(saved.language);
+        applyTheme(isTheme(saved.theme) ? saved.theme : 'system');
         const kept = fromPreferences(saved.run);
         settings = kept.settings;
         settingsOpen = kept.settingsOpen;
@@ -454,7 +465,7 @@
       </Popover>
       <Popover title={t().header.preferences} align="end">
         {#snippet label()}<span aria-hidden="true">⚙</span>{/snippet}
-        <label class="language">
+        <label class="preference">
           {t().language.label}
           <select
             value={locale()}
@@ -465,6 +476,20 @@
           >
             <option value="en">{t().language.en}</option>
             <option value="fr">{t().language.fr}</option>
+          </select>
+        </label>
+        <label class="preference">
+          {t().theme.label}
+          <select
+            value={theme()}
+            onchange={(e) => {
+              const value = e.currentTarget.value;
+              if (isTheme(value)) void changeTheme(value);
+            }}
+          >
+            {#each THEMES as choice (choice)}
+              <option value={choice}>{t().theme[choice]}</option>
+            {/each}
           </select>
         </label>
       </Popover>
@@ -686,9 +711,16 @@
     gap: 0.4rem;
     margin-left: auto;
   }
-  .language select {
+  /* Language and theme, one per line, their lists aligned. */
+  .preference {
+    display: grid;
+    grid-template-columns: 6rem auto;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.3rem 0;
+  }
+  .preference select {
     font: inherit;
-    margin-left: 0.5rem;
   }
   .closing,
   .strip {

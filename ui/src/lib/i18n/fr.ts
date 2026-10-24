@@ -7,6 +7,13 @@ const n = (value: number) => value.toLocaleString('fr-FR');
 
 export const fr: Messages = {
   language: { label: 'Langue', en: 'English', fr: 'Français' },
+  theme: {
+    label: 'Thème',
+    system: 'Comme Windows (clair ou sombre)',
+    light: 'Clair',
+    dark: 'Sombre',
+    oled: 'Sombre OLED (noir pur)',
+  },
 
   header: { preferences: 'Préférences', help: 'Aide : raccourcis clavier' },
 

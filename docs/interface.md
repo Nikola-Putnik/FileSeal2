@@ -18,7 +18,7 @@ L'écran Fichiers, de haut en bas :
    - le nom et la version ;
    - les écrans Fichiers et Bases ;
    - la **base active**, en un bouton. Il ouvre la base actuelle, les récentes, créer, ouvrir et fermer. « lecture seule » et « partage réseau » restent affichés à côté ;
-   - **?** : les raccourcis clavier ; **⚙** : la langue.
+   - **?** : les raccourcis clavier ; **⚙** : la langue et le [thème](#thèmes).
 2. **Action** (Créer une référence · Vérifier · Rechercher) et le bouton **Réglages**. Il résume les réglages en cours (« SHA-256 · fichiers de hash + base · référencés sautés ») et les déplie en un panneau teinté, au-dessus de la liste, limité à 40 % de la hauteur. **Les réglages et l'état du panneau sont gardés** d'un lancement à l'autre (`settings.json`, `run`) ; une valeur absente ou incohérente reprend sa valeur par défaut. Les réglages :
    - Créer : algorithmes (SHA-256 coché ; MD5 avec la mention « compatibilité ») et destinations (fichier de hash à côté de chaque fichier, base active). **Fichiers déjà référencés** : les sauter sans les relire s'ils ont tous les algorithmes cochés (par défaut), ou s'ils ont une référence quelle qu'elle soit, ou les relire ; et, pour ceux qui sont sautés, ajouter leurs fichiers de hash à la base active ([formats-hash.md](formats-hash.md)).
    - Vérifier : références à consulter (fichiers de hash, base active).
@@ -113,6 +113,23 @@ Chaque statut associe une icône de forme différente (✔, ✖, ⚠, ℹ, –, 
 - L'onglet choisi est en gras et souligné.
 - Une puce de filtre active est soulignée et encadrée.
 - En mode « couleurs forcées » (contraste élevé de Windows), la sélection prend les couleurs système `Highlight` et `HighlightText`.
+
+## Thèmes
+
+Choisis dans **⚙** (préférences), enregistrés dans `settings.json` (`theme`) :
+
+| Thème | Pour qui | Fond / texte |
+|---|---|---|
+| **Comme Windows** (par défaut, `theme: null`) | Suit le mode clair ou sombre de Windows, y compris quand il change. | Clair ou Sombre |
+| **Clair** | | `#f6f7f9` / `#1c2430` |
+| **Sombre** | Sombre mais doux : gris bleutés, texte légèrement en dessous du blanc. | `#171b21` / `#dfe5ec` |
+| **Sombre OLED** | Noir pur pour les écrans OLED : gris neutres, zones séparées par leurs bordures plutôt que par un fond plus clair, texte `#e2e2e2` (un blanc pur bave sur du noir). | `#000000` / `#e2e2e2` |
+
+- **Jetons** (`ui/src/app.css`) : chaque couleur donne sa valeur claire et sa valeur sombre (`light-dark()`). Le schéma de couleurs (`color-scheme`) choisit l'une ou l'autre : celui de Windows par défaut, celui du thème choisi sinon (`data-theme` sur la racine). Le thème OLED redéfinit les jetons. Cases à cocher, listes déroulantes et champs de saisie suivent le thème.
+- **Contrastes** (WCAG), vérifiés pour les trois palettes : texte et texte secondaire sur chaque fond (fond, surface, panneau, ligne sélectionnée) **≥ 4,5:1** ; couleurs des statuts employées comme texte ≥ 4,5:1 ; texte du bouton principal ≥ 4,5:1 ; icônes des statuts et contour du focus ≥ 3:1. Le plus faible : texte secondaire sur ligne sélectionnée, 4,6:1 (Sombre).
+- **Barre de titre** : la fenêtre prend le thème clair ou sombre correspondant (`set_theme`), dès le démarrage.
+- **Au démarrage**, le thème de la session précédente est appliqué avant la lecture des réglages (copie dans le stockage de la page), pour ne pas changer de couleurs sous les yeux.
+- **Contraste élevé de Windows** : il l'emporte sur tous les thèmes.
 
 ## Mémoire et fluidité
 

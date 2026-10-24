@@ -84,6 +84,26 @@ pub async fn settings_set_language(
     state.update(|settings| settings.language = language)
 }
 
+#[tauri::command]
+pub async fn settings_set_theme(
+    window: tauri::WebviewWindow,
+    state: State<'_, SettingsState>,
+    theme: Option<String>,
+) -> Result<Settings, Problem> {
+    let _ = window.set_theme(native_theme(theme.as_deref()));
+    state.update(|settings| settings.theme = theme)
+}
+
+/// The window's own theme (title bar), for the page's: dark for both dark
+/// themes, the system's when none is chosen.
+pub fn native_theme(theme: Option<&str>) -> Option<tauri::Theme> {
+    match theme {
+        Some("light") => Some(tauri::Theme::Light),
+        Some("dark" | "oled") => Some(tauri::Theme::Dark),
+        _ => None,
+    }
+}
+
 /// The choices of the next batch, kept for the next session.
 #[tauri::command]
 pub async fn settings_set_run(

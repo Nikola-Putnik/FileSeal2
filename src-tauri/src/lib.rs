@@ -77,7 +77,9 @@ pub fn run() {
                 .first()
                 .cloned()
                 .expect("a window in tauri.conf.json");
-            let mut window = WebviewWindowBuilder::from_config(app.handle(), &config)?;
+            let theme = app.state::<settings::SettingsState>().snapshot().theme;
+            let mut window = WebviewWindowBuilder::from_config(app.handle(), &config)?
+                .theme(settings::native_theme(theme.as_deref()));
             if let Some(portable) = portable {
                 window = window.data_directory(portable.data_dir.join("webview"));
             }
@@ -87,6 +89,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             settings::settings_get,
             settings::settings_set_language,
+            settings::settings_set_theme,
             settings::settings_set_run,
             settings::app_info,
             commands::database_create,

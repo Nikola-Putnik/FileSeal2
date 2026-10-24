@@ -80,7 +80,7 @@ Les deux se cumulent, et c'est le choix par défaut quand une base est ouverte. 
   - les écrans **Fichiers** et **Bases** ;
   - la **base active** : un clic ouvre la base actuelle, les récentes, créer, ouvrir, fermer ;
   - **?** : les raccourcis clavier ;
-  - **⚙** : la langue.
+  - **⚙** : la langue, et le thème : **comme Windows** (par défaut), **clair**, **sombre**, ou **sombre OLED** (noir pur, pour les écrans OLED).
 - **L'action** (Créer, Vérifier, Rechercher) et le bouton **Réglages**, qui résume les réglages en cours et les déplie au besoin. Vos réglages sont gardés d'un lancement à l'autre.
 - **La liste des fichiers** prend toute la hauteur. Le **Détail** du fichier choisi s'ouvre à côté. Si la fenêtre est étroite, il s'ouvre en dessous, et seulement sur demande : double-clic, Entrée ou bouton **Détail**. ✕ le ferme, Échap ramène à la liste.
 - **En bas, toujours visible** :
@@ -241,7 +241,7 @@ Conseils :
 | | Version installée | Version portable |
 |---|---|---|
 | Programme | `%LOCALAPPDATA%\FileSeal` | le dossier décompressé |
-| Réglages (langue, bases récentes, choix des lots) | `%APPDATA%\org.fileseal.desktop\settings.json` | `data\settings.json` |
+| Réglages (langue, thème, bases récentes, choix des lots) | `%APPDATA%\org.fileseal.desktop\settings.json` | `data\settings.json` |
 | Journaux (14 jours) | `%LOCALAPPDATA%\org.fileseal.desktop\logs` | `data\logs` |
 | Données de l'interface (WebView2) | `%LOCALAPPDATA%\org.fileseal.desktop\EBWebView` | `data\webview` |
 | Bases | là où vous les créez (proposé : Documents) | là où vous les créez (proposé : à côté de `FileSeal.exe`) |

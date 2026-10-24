@@ -1,47 +1,65 @@
-/* Colours are tokens only; dark theme follows the system. Status colours are
-   never the only signal: every status also has an icon and a text. */
+/* Colours are tokens only. Each token gives its light and its dark value
+   (light-dark): the colour scheme picks one, from the system by default or
+   from the theme chosen in the preferences (data-theme on the root). The
+   OLED theme has its own set. Every pair that meets on screen is at least
+   4.5:1 for text and 3:1 for focus and icons (docs/interface.md, Thèmes).
+   Status colours are never the only signal: every status also has an icon
+   and a text. */
 :root {
   color-scheme: light dark;
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --text: #1c2430;
-  --muted: #5b6573;
-  --border: #d5dbe3;
-  --accent: #1f5f99;
-  --on-accent: #ffffff;
-  --focus: #e08a00;
-  --ok: #1e7a3c;
-  --warn: #a35f00;
-  --error: #b42318;
-  --neutral: #5b6573;
-  --on-tone: #ffffff;
+  --bg: light-dark(#f6f7f9, #171b21);
+  --surface: light-dark(#ffffff, #1f242c);
+  --text: light-dark(#1c2430, #dfe5ec);
+  --muted: light-dark(#535e6c, #9ca7b5);
+  --border: light-dark(#c9d1db, #3a434f);
+  --accent: light-dark(#1f5f99, #6aa8e0);
+  --on-accent: light-dark(#ffffff, #0c1724);
+  --focus: light-dark(#c06a00, #f2b24c);
+  --ok: light-dark(#1e7a3c, #4cb874);
+  --warn: light-dark(#9a5900, #e0a540);
+  --error: light-dark(#b42318, #f0736a);
+  --neutral: light-dark(#5b6573, #8b96a5);
+  --on-tone: light-dark(#ffffff, #0c1724);
   --mono: 'Cascadia Mono', Consolas, monospace;
   /* Panels that float (menus) and areas set apart (settings, detail). */
-  --shadow: 0 8px 28px rgb(0 0 0 / 0.16);
-  --panel: #eef1f5;
+  --shadow: 0 8px 28px light-dark(rgb(0 0 0 / 0.16), rgb(0 0 0 / 0.5));
+  --panel: light-dark(#eef1f5, #1b2026);
+  /* Check boxes, radio buttons and progress bars in the theme's colour. */
+  accent-color: var(--accent);
   font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.45;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #15191f;
-    --surface: #1d232b;
-    --text: #e6eaf0;
-    --muted: #9aa5b4;
-    --border: #36404c;
-    --accent: #5ea2e0;
-    --on-accent: #0b1622;
-    --focus: #ffb444;
-    --ok: #3fa864;
-    --warn: #d89a2b;
-    --error: #e5584d;
-    --neutral: #8792a1;
-    --on-tone: #0b1622;
-    --shadow: 0 8px 28px rgb(0 0 0 / 0.5);
-    --panel: #191e25;
-  }
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Pure black for OLED screens: neutral greys without a tint, areas set
+   apart by their borders rather than by a lighter background, and a text a
+   little below white, which smears less on black. */
+:root[data-theme='oled'] {
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: #000000;
+  --text: #e2e2e2;
+  --muted: #a3a3a3;
+  --border: #3a3a3a;
+  --accent: #5eaaf2;
+  --on-accent: #000000;
+  --focus: #ffb444;
+  --ok: #46c26e;
+  --warn: #eaab3e;
+  --error: #ff6f63;
+  --neutral: #909090;
+  --on-tone: #000000;
+  /* No shadow shows on black: menus stand out by their border. */
+  --shadow: none;
+  --panel: #0b0b0b;
 }
 
 * {
@@ -95,6 +113,36 @@ button.primary {
 button:disabled {
   opacity: 0.55;
   cursor: default;
+}
+
+/* Fields and lists in the theme's colours: the browser's own are grey,
+   out of place on the black of the OLED theme. */
+input[type='text'],
+input[type='search'],
+select {
+  font: inherit;
+  color: var(--text);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+input[type='text'],
+input[type='search'] {
+  padding: 0.3rem 0.5rem;
+}
+
+select {
+  padding: 0.15rem 0.35rem;
+}
+
+input::placeholder {
+  color: var(--muted);
+}
+
+input:disabled,
+select:disabled {
+  opacity: 0.55;
 }
 
 :focus-visible {

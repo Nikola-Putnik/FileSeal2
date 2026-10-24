@@ -1,5 +1,5 @@
 //! Application settings (`settings.json` in the user's configuration
-//! folder): interface language, recent databases, the database to reopen,
+//! folder): interface language and theme, recent databases, the database to reopen,
 //! the choices made for batches. A missing or damaged file gives the
 //! defaults rather than an error: settings are a convenience, never a
 //! reason not to start.
@@ -24,6 +24,8 @@ pub const MAX_RECENT: usize = 10;
 pub struct Settings {
     /// Interface language (`"en"`, `"fr"`); `None` = default (English).
     pub language: Option<String>,
+    /// Colour theme (`"light"`, `"dark"`, `"oled"`); `None` = the system's.
+    pub theme: Option<String>,
     /// Most recently used first.
     pub recent_databases: Vec<RecentDatabase>,
     /// The database that was active when FileSeal was last used, reopened
@@ -249,6 +251,12 @@ mod tests {
         // Edited by hand and saved with a BOM.
         std::fs::write(&path, "\u{feff}{\"language\":\"fr\"}").unwrap();
         assert_eq!(Settings::load(&path).language.as_deref(), Some("fr"));
+        // A theme from a newer FileSeal is kept as text: the rest is still
+        // read, and the interface falls back to the system's theme.
+        std::fs::write(&path, r#"{"language":"fr","theme":"sepia"}"#).unwrap();
+        let newer = Settings::load(&path);
+        assert_eq!(newer.theme.as_deref(), Some("sepia"));
+        assert_eq!(newer.language.as_deref(), Some("fr"));
     }
 
     #[test]

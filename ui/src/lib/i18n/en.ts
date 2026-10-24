@@ -7,6 +7,13 @@ const n = (value: number) => value.toLocaleString('en-GB');
 
 export const en = {
   language: { label: 'Language', en: 'English', fr: 'Français' },
+  theme: {
+    label: 'Theme',
+    system: 'As Windows (light or dark)',
+    light: 'Light',
+    dark: 'Dark',
+    oled: 'Dark OLED (pure black)',
+  },
 
   header: { preferences: 'Preferences', help: 'Help: keyboard shortcuts' },
 
