@@ -28,13 +28,14 @@ set SETUP=%BUNDLE%\nsis\FileSeal_%VERSION%_x64-setup.exe
 set ZIP=%BUNDLE%\portable\FileSeal_%VERSION%_x64-portable.zip
 if not exist "%SETUP%" (echo Installateur introuvable : %SETUP% & exit /b 1)
 
-rem Version portable : le programme, portable.flag et le mode d'emploi,
-rem dans un dossier FileSeal.
+rem Version portable : le programme, portable.flag, le mode d'emploi et la
+rem licence, dans un dossier FileSeal.
 if exist "%BUNDLE%\portable" rmdir /s /q "%BUNDLE%\portable"
 mkdir "%BUNDLE%\portable\FileSeal" || exit /b 1
 copy /y target\release\fileseal.exe "%BUNDLE%\portable\FileSeal\FileSeal.exe" >nul || exit /b 1
 copy /y scripts\portable\portable.flag "%BUNDLE%\portable\FileSeal\" >nul || exit /b 1
 copy /y scripts\portable\README.txt "%BUNDLE%\portable\FileSeal\" >nul || exit /b 1
+copy /y LICENSE "%BUNDLE%\portable\FileSeal\LICENSE.txt" >nul || exit /b 1
 "%SystemRoot%\System32\tar.exe" -a -cf "%ZIP%" -C "%BUNDLE%\portable" FileSeal || exit /b 1
 rmdir /s /q "%BUNDLE%\portable\FileSeal"
 

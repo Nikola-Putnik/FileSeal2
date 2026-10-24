@@ -4,7 +4,7 @@
 
 FileSeal is a Windows app that keeps a fingerprint of your files and tells you, months or years later, whether they are still exactly the same. Use it for movie and photo collections, archives, backups and external drives: anything you want to keep intact over time.
 
-**[Download the latest version](https://github.com/Nikola-Putnik/FileSeal2/releases/latest)**: Windows, 64-bit, free. Works offline, with no account.
+**[Download the latest version](https://github.com/Nikola-Putnik/FileSeal2/releases/latest)**: Windows, 64-bit, free and open source. Works offline, with no account.
 
 ## How it works
 
@@ -87,3 +87,7 @@ FileSeal is written in Rust (the engine, `crates/fileseal-core`), with a [Tauri 
 ## Documentation
 
 The detailed documentation is in French, in [`docs/`](docs/): the [user guide](docs/guide-utilisateur.md), the [hash file formats](docs/formats-hash.md), how moved files are matched ([rapprochement](docs/rapprochement.md)), the [architecture](docs/architecture.md) and the [known limitations](docs/limites.md). The changes of each version are listed in the [release notes](https://github.com/Nikola-Putnik/FileSeal2/releases) and in [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+FileSeal is released under the [MIT License](LICENSE).

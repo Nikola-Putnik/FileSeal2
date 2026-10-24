@@ -144,8 +144,8 @@ Produit dans `target\release\bundle\` :
 
 | Fichier | Contenu |
 |---|---|
-| `nsis\FileSeal_<version>_x64-setup.exe` | Installateur NSIS par utilisateur, en anglais et en français selon la langue de Windows. Sans droits administrateur. Installe dans `%LOCALAPPDATA%\FileSeal`, avec un raccourci dans le menu Démarrer et sur le Bureau, et une entrée dans « Applications installées ». |
-| `portable\FileSeal_<version>_x64-portable.zip` | Un dossier `FileSeal` : `FileSeal.exe` (le même programme), `portable.flag` et `README.txt` (anglais et français), venus de `scripts\portable\`. |
+| `nsis\FileSeal_<version>_x64-setup.exe` | Installateur NSIS par utilisateur, en anglais et en français selon la langue de Windows. Sans droits administrateur. Installe dans `%LOCALAPPDATA%\FileSeal`, avec un raccourci dans le menu Démarrer et sur le Bureau, et une entrée dans « Applications installées ». La licence est installée à côté du programme (`LICENSE.txt`, ressource de `tauri.conf.json`). |
+| `portable\FileSeal_<version>_x64-portable.zip` | Un dossier `FileSeal` : `FileSeal.exe` (le même programme), `portable.flag` et `README.txt` (anglais et français), venus de `scripts\portable\`, et `LICENSE.txt` (licence MIT, copie de `LICENSE`). |
 | `….sha256` à côté de chacun | Leur empreinte, écrite par `fileseal-cli create` : un fichier de hash GNU, vérifiable par FileSeal, `sha256sum -c` ou `certutil`. |
 
 - **La version** est celle de `[workspace.package]` dans `Cargo.toml` : elle vaut pour le moteur, l'application, l'installateur et les informations de version de Windows. `package.json` doit dire la même (test `the_interface_package_has_the_same_version`).
