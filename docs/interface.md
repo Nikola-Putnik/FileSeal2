@@ -93,7 +93,7 @@ Dans les onglets, ← et → passent d'un onglet à l'autre. Le bouton **?** de 
 
 ## Résultats et décisions
 
-- **Puces par statut** au-dessus de la liste, les problèmes en premier (« ✖ Différent de la référence (3) », « – Non traité (12) », « ✔ Conforme (1 200) »…). Chacune filtre la liste ; elles se mettent à jour pendant le lot. Un nouveau lot efface le filtre.
+- **Puces par statut** au-dessus de la liste, les problèmes en premier (« ✖ Différent de la référence (3) », « – Non traité (12) », « ✔ Conforme (1 200) »…). Chacune filtre la liste. Elles comptent ce que montrent les lignes **encore dans la liste**, en direct : pendant le lot, quand des lignes sont retirées, quand une décision est prise (« ✔ Nouvelle version acceptée (2) »). Sans résultat dans la liste, elles disparaissent ; un filtre que plus aucune ligne ne montre revient à « Tous ».
 - **Décisions pour tous les résultats**, chacune avec son nombre et une confirmation dans la page :
   - « Mettre à jour N emplacements » : fichiers reconnus sur le même disque sous une autre lettre (R2), avec le contenu enregistré ;
   - « Rattacher N fichiers déplacés » : contenu d'un seul fichier connu, disparu de son emplacement (R5). Un cas ambigu n'est jamais rattaché par lot ;

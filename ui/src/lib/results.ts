@@ -6,7 +6,9 @@
 import type { BatchEntry } from './generated/BatchEntry';
 import type { EntryOutcome } from './generated/EntryOutcome';
 import type { Observation } from './generated/Observation';
+import { t } from './i18n/index.svelte';
 import {
+  ICONS,
   createStatus,
   searchStatus,
   skipStatus,
@@ -145,6 +147,48 @@ export function acceptable(entries: Iterable<Keyed>): Acceptance[] {
 }
 
 /** Entries by status code. */
+/** A decision taken on a row after the batch, as far as its state shows. */
+export interface ShownDecision {
+  kind: 'attached' | 'updated' | 'accepted' | 'created' | 'failed';
+}
+
+/** The state a row shows: the decision taken on it, else its status. */
+export function shownCode(entry: BatchEntry, decided: ShownDecision | undefined): string {
+  return decided ? `decided:${decided.kind}` : statusCode(entry.outcome);
+}
+
+/**
+ * Counts by shown state, of the rows still in the list: a row taken out no
+ * longer counts, and a decision taken on a row counts under the decision.
+ */
+export function shownCounts(
+  rows: Iterable<{ id: number }>,
+  results: ReadonlyMap<number, BatchEntry>,
+  decisions: ReadonlyMap<number, ShownDecision>,
+): [string, number][] {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    const entry = results.get(row.id);
+    if (!entry) continue;
+    const code = shownCode(entry, decisions.get(row.id));
+    counts.set(code, (counts.get(code) ?? 0) + 1);
+  }
+  return [...counts];
+}
+
+/** Label of a shown state: a status of the batch, or a decision taken. */
+export function shownLabel(action: 'create' | 'verify' | 'search', code: string): StatusLabel {
+  if (!code.startsWith('decided:')) return codeLabel(action, code);
+  const kind = code.slice('decided:'.length) as ShownDecision['kind'];
+  const ok = kind !== 'failed';
+  return {
+    tone: ok ? 'ok' : 'error',
+    icon: ok ? ICONS.ok : ICONS.error,
+    label: t().results.decided[kind],
+    explanation: '',
+  };
+}
+
 export function countByStatus(entries: Iterable<BatchEntry>): [string, number][] {
   const counts = new Map<string, number>();
   for (const entry of entries) {

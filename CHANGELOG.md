@@ -1,5 +1,9 @@
 # Nouveautés
 
+## À venir
+
+- **Puces « Afficher : »** : elles comptent les lignes encore dans la liste, en direct (pendant un lot, après un retrait, après une décision), et disparaissent quand plus aucune ligne n'a de résultat.
+
 ## 2.3.0 — 2026-10-23
 
 - **Nouvelle mise en page** : la fenêtre ne défile plus. La liste prend toute la hauteur, le détail s'ouvre à côté (en dessous si la fenêtre est étroite), et une barre fixe en bas sert à lancer, suivre et conclure un lot.

@@ -4,7 +4,7 @@
   // files and folders left out, with their reason. It takes the height the
   // window gives it; what is used now and then is behind a button.
   import { api, problemMessage } from '../api';
-  import { fileName, folderOf, formatBytes, relativeTo } from '../format';
+  import { fileName, folderOf, formatBytes, formatCount, relativeTo } from '../format';
   import type { Exclusion } from '../generated/Exclusion';
   import type { Column } from '../grid';
   import { t } from '../i18n/index.svelte';
@@ -18,7 +18,7 @@
     type Row,
     type SortKey,
   } from '../list';
-  import { byConcern, codeLabel, countByStatus, statusCode, statusLabel } from '../results';
+  import { byConcern, shownCode, shownCounts, shownLabel, statusLabel } from '../results';
   import type { BatchRun } from '../run.svelte';
   import type { Selection, SelectionProblem } from '../selection.svelte';
   import Confirm from './Confirm.svelte';
@@ -71,23 +71,27 @@
   let busy = $derived(disabled || selection.scanning);
   // Shown once: the folder column then shows only what differs.
   let base = $derived(commonFolder(included));
-  // A new batch clears the results: a status chosen before means nothing.
-  $effect(() => {
-    if (run.results.size === 0) statusFilter = null;
-  });
   let matching = $derived(matchingRows(included, text));
   let shown = $derived.by(() => {
     if (statusFilter === null) return matching;
     return matching.filter((row) => {
       const entry = run.results.get(row.id);
-      return entry !== undefined && statusCode(entry.outcome) === statusFilter;
+      return entry !== undefined && shownCode(entry, run.decisions.get(row.id)) === statusFilter;
     });
   });
-  // Counts by status, live while the batch runs: problems first.
+  // Counts by what the rows in the list show, live: while the batch runs,
+  // when rows are taken out, when decisions are taken. Problems first.
   let statuses = $derived.by(() => {
-    return countByStatus(run.results.values())
-      .map(([code, count]) => ({ code, count, label: codeLabel(run.action, code) }))
+    return shownCounts(included, run.results, run.decisions)
+      .map(([code, count]) => ({ code, count, label: shownLabel(run.action, code) }))
       .sort((a, b) => byConcern(a.label, b.label) || b.count - a.count);
+  });
+  let withResults = $derived(statuses.reduce((sum, status) => sum + status.count, 0));
+  // A state no row shows any more (rows taken out, a new batch): all again.
+  $effect(() => {
+    if (statusFilter !== null && !statuses.some((s) => s.code === statusFilter)) {
+      statusFilter = null;
+    }
   });
   let selectedCount = $derived(included.filter((row) => selected.has(row.id)).length);
   let moreOpen = $state(false);
@@ -315,7 +319,7 @@
             aria-pressed={statusFilter === null}
             onclick={() => (statusFilter = null)}
           >
-            {t().list.showAll(run.results.size)}
+            {t().list.showAll(withResults)}
           </button>
           {#each statuses as status (status.code)}
             <button
@@ -327,7 +331,7 @@
               <StatusBadge
                 tone={status.label.tone}
                 icon={status.label.icon}
-                label="{status.label.label} ({status.count})"
+                label="{status.label.label} ({formatCount(status.count)})"
               />
             </button>
           {/each}

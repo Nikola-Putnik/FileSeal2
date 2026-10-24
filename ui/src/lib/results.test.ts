@@ -11,6 +11,7 @@ import {
   locationUpdates,
   observationOf,
   probableMoves,
+  shownCounts,
   statusCode,
 } from './results';
 
@@ -99,6 +100,26 @@ describe('batch results', () => {
       ['match', 2],
       ['mismatch', 1],
     ]);
+  });
+
+  it('counts what the rows still in the list show, decisions included', () => {
+    const results = new Map(
+      entries(
+        verified('a', {}),
+        verified('b', {}),
+        verified('c', { status: 'mismatch' }),
+        verified('d', { status: 'mismatch' }),
+      ),
+    );
+    const decisions = new Map([[4, { kind: 'accepted' as const }]]);
+    // Row 2 was taken out of the list; row 5 was added after the batch.
+    const rows = [{ id: 1 }, { id: 3 }, { id: 4 }, { id: 5 }];
+    expect(shownCounts(rows, results, decisions)).toEqual([
+      ['match', 1],
+      ['mismatch', 1],
+      ['decided:accepted', 1],
+    ]);
+    expect(shownCounts([{ id: 5 }], results, decisions)).toEqual([]);
   });
 
   it('keeps what was read, to decide without reading again', () => {
