@@ -81,7 +81,7 @@ Règles :
 ## Les références
 
 - **Recherche** : une partie du nom ou du dossier (sans tenir compte de la casse), ou le **début d'un hash** (8 chiffres hexadécimaux ou plus). Sans texte, tout est listé.
-- **Liste** : nom, dossier, taille, date d'enregistrement, dernière vérification (date et résultat). 2 000 lignes au plus, triées par chemin ; au-delà, un message invite à préciser la recherche.
+- **Liste** : nom, dossier, taille, date d'enregistrement, dernière vérification (date et résultat). 2 000 lignes au plus ; au-delà, un message invite à préciser la recherche. **Un clic sur un en-tête trie par cette colonne**, un second dans l'autre sens (▲ ▼) ; par défaut, par chemin (dossier, puis nom). Le tri est fait par la base sur toutes les références trouvées, avant de garder les 2 000 premières : « Taille ▼ » montre les plus gros fichiers de toute la base, pas ceux d'une page. « Dernière vérification ▲ » commence par celles jamais vérifiées, puis les plus anciennes : ce qui est le plus à vérifier. Pour les références retirées, « Retirée le » trie par date de retrait. Mesures : [performances.md](performances.md).
 - **Historique** de la référence choisie (il suit la ligne active, au clic comme aux flèches) :
   - les **versions** : date, origine (créée, acceptée comme nouvelle version, importée), taille, empreintes, date de remplacement ;
   - les **emplacements** : l'actuel, puis les anciens, avec leurs dates (« vu du … au … », « quitté le … ») ;

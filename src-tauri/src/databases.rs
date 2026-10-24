@@ -8,7 +8,7 @@ use std::path::Path;
 use fileseal_core::ops::items::{self, ItemsChanged};
 use fileseal_core::ops::volumes::{self, Reassign, ReassignPreview, ReassignReport, VolumeStatus};
 use fileseal_core::store::files::{self, CopyReport, Inspection};
-use fileseal_core::store::{ItemHistory, Listed, ReferencePage};
+use fileseal_core::store::{BrowseOrder, ItemHistory, Listed, ReferencePage};
 use fileseal_core::{DatabaseInfo, Problem, ProblemKind, Store};
 use serde::Serialize;
 use tauri::State;
@@ -151,9 +151,10 @@ pub async fn database_browse(
     state: State<'_, AppState>,
     query: String,
     listed: Listed,
+    order: BrowseOrder,
 ) -> Result<ReferencePage, Problem> {
     with_database(&state, move |store| {
-        store.browse(&query, BROWSE_LIMIT, listed)
+        store.browse(&query, BROWSE_LIMIT, listed, order)
     })
     .await
 }

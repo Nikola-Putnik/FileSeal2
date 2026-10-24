@@ -9,6 +9,7 @@ import type { BatchFile } from './generated/BatchFile';
 import type { BatchOptions } from './generated/BatchOptions';
 import type { BatchSummary } from './generated/BatchSummary';
 import type { BatchUpdate } from './generated/BatchUpdate';
+import type { BrowseOrder } from './generated/BrowseOrder';
 import type { CreateOptions } from './generated/CreateOptions';
 import type { CopyReport } from './generated/CopyReport';
 import type { CreateReport } from './generated/CreateReport';
@@ -81,8 +82,8 @@ export const api = {
   databaseReassignPreview: (request: Reassign) =>
     invoke<ReassignPreview>('database_reassign_preview', { request }),
   databaseReassign: (request: Reassign) => invoke<ReassignReport>('database_reassign', { request }),
-  databaseBrowse: (query: string, listed: Listed) =>
-    invoke<ReferencePage>('database_browse', { query, listed }),
+  databaseBrowse: (query: string, listed: Listed, order: BrowseOrder) =>
+    invoke<ReferencePage>('database_browse', { query, listed, order }),
   databaseMatching: (query: string, listed: Listed) =>
     invoke<number[]>('database_matching', { query, listed }),
   databaseRemove: (itemIds: number[]) => invoke<ItemsChanged>('database_remove', { itemIds }),

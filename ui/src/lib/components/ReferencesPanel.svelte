@@ -3,9 +3,12 @@
   // the history of the one chosen: its versions, where it was, and every
   // verification, in a pane beside the list. References can be removed
   // from the database (several at once, or every result of a search) and
-  // put back.
+  // put back. A click on a column header sorts by it: the database sorts
+  // every reference found, then sends the first ones.
   import { api, problemMessage } from '../api';
   import { fileName, folderOf, formatBytes, formatDate } from '../format';
+  import type { BrowseColumn } from '../generated/BrowseColumn';
+  import type { BrowseOrder } from '../generated/BrowseOrder';
   import type { DatabaseInfo } from '../generated/DatabaseInfo';
   import type { ItemHistory } from '../generated/ItemHistory';
   import type { ItemsChanged } from '../generated/ItemsChanged';
@@ -55,6 +58,8 @@
     if (wideWindow.current) active = null;
   }
   let listed = $state<Listed>('active');
+  /** Chosen by a click on a header; by path (folder, then name) until then. */
+  let sort = $state<BrowseOrder | null>(null);
   let selected = $state.raw<Set<number>>(new Set());
   let working = $state(false);
   // A function, so the text follows a change of language.
@@ -66,15 +71,37 @@
   let locked = $derived(busy || working || database.readOnly);
 
   const columns = $derived<Column[]>([
-    { id: 'name', label: t().dbScreen.columns.name, width: 'minmax(12rem, 3fr)' },
-    { id: 'folder', label: t().dbScreen.columns.folder, width: 'minmax(7rem, 1.5fr)' },
-    { id: 'size', label: t().dbScreen.columns.size, width: '6.5rem', align: 'end' },
+    {
+      id: 'name',
+      label: t().dbScreen.columns.name,
+      width: 'minmax(12rem, 3fr)',
+      sortable: true,
+    },
+    {
+      id: 'folder',
+      label: t().dbScreen.columns.folder,
+      width: 'minmax(7rem, 1.5fr)',
+      sortable: true,
+    },
+    {
+      id: 'size',
+      label: t().dbScreen.columns.size,
+      width: '6.5rem',
+      align: 'end',
+      sortable: true,
+    },
     {
       id: 'recorded',
       label: listed === 'retired' ? t().dbScreen.columns.retired : t().dbScreen.columns.recorded,
       width: '9.5rem',
+      sortable: true,
     },
-    { id: 'check', label: t().dbScreen.columns.lastCheck, width: 'minmax(15rem, 2fr)' },
+    {
+      id: 'lastCheck',
+      label: t().dbScreen.columns.lastCheck,
+      width: 'minmax(15rem, 2fr)',
+      sortable: true,
+    },
   ]);
 
   // Searched at once when shown or when the database changes; shortly
@@ -85,19 +112,33 @@
     void database.path;
     void refresh;
     void listed;
+    void sort;
     const typing = searched !== null && text !== searched;
     searched = text;
     const timer = setTimeout(() => void search(text), typing ? 250 : 0);
     return () => clearTimeout(timer);
   });
 
+  // Answers can arrive out of order (a quick second click): only the
+  // latest one is shown.
+  let asked = 0;
   async function search(text: string) {
+    const request = ++asked;
+    const order = sort ?? { column: 'folder', descending: false };
     try {
-      page = await api.databaseBrowse(text, listed);
+      const found = await api.databaseBrowse(text, listed, order);
+      if (request !== asked) return;
+      page = found;
       problem = null;
     } catch (error) {
-      problem = error;
+      if (request === asked) problem = error;
     }
+  }
+
+  /** A header clicked: by that column, the other way round on a second click. */
+  function resort(column: string) {
+    const descending = sort?.column === column ? !sort.descending : false;
+    sort = { column: column as BrowseColumn, descending };
   }
 
   // The history follows the active row (arrows, click).
@@ -248,6 +289,8 @@
         bind:active
         {selected}
         onselect={(keys) => (selected = keys)}
+        {sort}
+        onsort={resort}
         onopen={() => {
           historyAsked = true;
           setTimeout(() => document.getElementById('history-title')?.focus());

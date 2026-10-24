@@ -10,7 +10,7 @@ use crate::ops::{
     verify_file,
 };
 use crate::reader::Control;
-use crate::store::{Listed, SharedStore};
+use crate::store::{BrowseOrder, Listed, SharedStore};
 
 struct Fixture {
     dir: tempfile::TempDir,
@@ -83,7 +83,10 @@ impl Fixture {
     }
 
     fn listed(&self, listed: Listed) -> u64 {
-        self.store.browse("", 100, listed).unwrap().total
+        self.store
+            .browse("", 100, listed, BrowseOrder::default())
+            .unwrap()
+            .total
     }
 }
 
@@ -103,7 +106,11 @@ fn a_removed_item_is_no_longer_used_but_its_history_stays() {
         (fx.listed(Listed::Active), fx.listed(Listed::Retired)),
         (1, 1)
     );
-    let row = &fx.store.browse("", 10, Listed::Retired).unwrap().rows[0];
+    let row = &fx
+        .store
+        .browse("", 10, Listed::Retired, BrowseOrder::default())
+        .unwrap()
+        .rows[0];
     assert_eq!(row.path, film.display().to_string(), "where it was");
     assert!(row.retired_at.is_some());
 
@@ -169,7 +176,7 @@ fn every_match_of_a_search_can_be_removed_not_only_those_listed() {
     fx.referenced(r"Films\film.mkv", b"a film");
     assert_eq!(
         fx.store
-            .browse(r"series\s01", 2, Listed::Active)
+            .browse(r"series\s01", 2, Listed::Active, BrowseOrder::default())
             .unwrap()
             .rows
             .len(),

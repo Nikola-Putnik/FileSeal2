@@ -86,7 +86,9 @@ fn the_name_shown_can_change() {
 fn references_are_found_by_name_path_or_hash() {
     let dir = tempfile::tempdir().unwrap();
     let mut store = fresh(dir.path(), "Browse");
-    let all = store.browse("", 100, Listed::Active).unwrap();
+    let all = store
+        .browse("", 100, Listed::Active, BrowseOrder::default())
+        .unwrap();
     assert_eq!(all.total, 3);
     let paths: Vec<&str> = all.rows.iter().map(|r| r.path.as_str()).collect();
     assert_eq!(
@@ -99,25 +101,46 @@ fn references_are_found_by_name_path_or_hash() {
     );
     assert_eq!(all.rows[0].algorithms, [Algorithm::Sha256]);
     assert_eq!(
-        store.browse("brazil", 100, Listed::Active).unwrap().total,
+        store
+            .browse("brazil", 100, Listed::Active, BrowseOrder::default())
+            .unwrap()
+            .total,
         1
     );
     assert_eq!(
-        store.browse("SÉRIES", 100, Listed::Active).unwrap().total,
+        store
+            .browse("SÉRIES", 100, Listed::Active, BrowseOrder::default())
+            .unwrap()
+            .total,
         1,
         "case ignored"
     );
     assert_eq!(
-        store.browse("cccccccc", 100, Listed::Active).unwrap().rows[0].path,
+        store
+            .browse("cccccccc", 100, Listed::Active, BrowseOrder::default())
+            .unwrap()
+            .rows[0]
+            .path,
         paths[2]
     );
     assert_eq!(
-        store.browse("dddddddd", 100, Listed::Active).unwrap().total,
+        store
+            .browse("dddddddd", 100, Listed::Active, BrowseOrder::default())
+            .unwrap()
+            .total,
         0
     );
     // `%` and `_` are characters to look for, not wildcards.
-    assert_eq!(store.browse("%", 100, Listed::Active).unwrap().total, 0);
-    let limited = store.browse("films", 1, Listed::Active).unwrap();
+    assert_eq!(
+        store
+            .browse("%", 100, Listed::Active, BrowseOrder::default())
+            .unwrap()
+            .total,
+        0
+    );
+    let limited = store
+        .browse("films", 1, Listed::Active, BrowseOrder::default())
+        .unwrap();
     assert_eq!((limited.total, limited.rows.len()), (2, 1));
 
     // The last verification shows in the list and in the history.
@@ -140,7 +163,10 @@ fn references_are_found_by_name_path_or_hash() {
     store
         .relocate(item, &location(r"F:\Films\Alien.mkv"))
         .unwrap();
-    let row = &store.browse("alien", 10, Listed::Active).unwrap().rows[0];
+    let row = &store
+        .browse("alien", 10, Listed::Active, BrowseOrder::default())
+        .unwrap()
+        .rows[0];
     assert_eq!(row.last_outcome.as_deref(), Some("match"));
     assert_eq!(row.path, r"F:\Films\Alien.mkv");
     let history = store.item_history(item).unwrap();
@@ -154,6 +180,221 @@ fn references_are_found_by_name_path_or_hash() {
         store.item_history(999).unwrap_err().kind,
         ProblemKind::NotFound
     );
+}
+
+/// The file names of a listing, in its order.
+fn names(store: &Store, column: BrowseColumn, descending: bool, listed: Listed) -> Vec<String> {
+    let order = BrowseOrder { column, descending };
+    let page = store.browse("", 100, listed, order).unwrap();
+    page.rows
+        .iter()
+        .map(|row| row.path.rsplit('\\').next().unwrap().to_owned())
+        .collect()
+}
+
+#[test]
+fn references_are_listed_in_the_order_asked() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut store = Store::create(&dir.path().join("order.fileseal"), "Order").unwrap();
+    // Recorded on the 1st, 2nd, 3rd; Beta never verified, zeta before alpha.
+    let rows = [
+        (r"E:\A\alpha.mkv", 10, '1', Some("2026-02-05")),
+        (r"E:\C\Beta.mkv", 20, '2', None),
+        (r"E:\B\zeta.mkv", 30, '3', Some("2026-02-01")),
+    ];
+    let operation = store.begin_operation(OperationKind::Verify).unwrap();
+    for (path, size, day, checked) in rows {
+        let item = store
+            .insert_reference(&location(path), size, &[sha(day)])
+            .unwrap()
+            .item_id;
+        store
+            .conn
+            .execute(
+                "UPDATE reference SET created_at = ?2 WHERE item_id = ?1",
+                params![item, format!("2026-01-0{day}T10:00:00.000Z")],
+            )
+            .unwrap();
+        if let Some(date) = checked {
+            store
+                .record_verification(&NewVerification {
+                    operation_id: operation,
+                    item_id: Some(item),
+                    reference_id: None,
+                    observed_path: path,
+                    observed_size: Some(size),
+                    observed_mtime: None,
+                    started_at: "2026-02-01T10:00:00.000Z",
+                    outcome: "match",
+                    detail: None,
+                    digests: &[sha(day)],
+                })
+                .unwrap();
+            store
+                .conn
+                .execute(
+                    "UPDATE verification SET finished_at = ?2 WHERE item_id = ?1",
+                    params![item, format!("{date}T10:00:00.000Z")],
+                )
+                .unwrap();
+        }
+    }
+    let active = Listed::Active;
+    use BrowseColumn::*;
+    // By default, by path: by folder, then by name.
+    assert_eq!(
+        names(&store, Folder, false, active),
+        ["alpha.mkv", "zeta.mkv", "Beta.mkv"]
+    );
+    assert_eq!(
+        names(&store, Folder, true, active),
+        ["Beta.mkv", "zeta.mkv", "alpha.mkv"]
+    );
+    assert_eq!(
+        names(&store, Name, false, active),
+        ["alpha.mkv", "Beta.mkv", "zeta.mkv"],
+        "case ignored"
+    );
+    assert_eq!(
+        names(&store, Size, true, active),
+        ["zeta.mkv", "Beta.mkv", "alpha.mkv"]
+    );
+    assert_eq!(
+        names(&store, Recorded, false, active),
+        ["alpha.mkv", "Beta.mkv", "zeta.mkv"]
+    );
+    assert_eq!(
+        names(&store, LastCheck, false, active),
+        ["Beta.mkv", "zeta.mkv", "alpha.mkv"],
+        "never verified first"
+    );
+    assert_eq!(
+        names(&store, LastCheck, true, active),
+        ["alpha.mkv", "zeta.mkv", "Beta.mkv"]
+    );
+    // The first of the whole database, not of the rows a page would hold.
+    let largest = BrowseOrder {
+        column: Size,
+        descending: true,
+    };
+    let page = store.browse("", 1, active, largest).unwrap();
+    assert_eq!((page.total, page.rows[0].size), (3, 30));
+
+    // Removed ones: "recorded" is when they were removed.
+    let ids: Vec<i64> = store
+        .browse("", 10, active, BrowseOrder::default())
+        .unwrap()
+        .rows
+        .iter()
+        .map(|row| row.item_id)
+        .collect();
+    for (id, day) in ids.iter().zip(['3', '1', '2']) {
+        store.retire_items(&[*id]).unwrap();
+        store
+            .conn
+            .execute(
+                "UPDATE item SET retired_at = ?2 WHERE id = ?1",
+                params![id, format!("2026-03-0{day}T10:00:00.000Z")],
+            )
+            .unwrap();
+    }
+    assert_eq!(
+        names(&store, Recorded, false, Listed::Retired),
+        ["zeta.mkv", "Beta.mkv", "alpha.mkv"]
+    );
+}
+
+/// How long listing a large database takes in each order, the list the
+/// Databases screen shows (2 000 rows). Measured, not a limit to hold.
+#[test]
+#[ignore = "long: cargo test --release -p fileseal-core --lib -- --ignored --nocapture large"]
+fn listing_a_large_database_in_every_order() {
+    const ITEMS: i64 = 100_000;
+    const CHECKS: i64 = 5;
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("large.fileseal");
+    let mut store = Store::create(&path, "Large").unwrap();
+    let filled = std::time::Instant::now();
+    {
+        let tx = store.conn.transaction().unwrap();
+        tx.execute(
+            "INSERT INTO operation (id, kind, started_at, app_version, status) \
+             VALUES (1, 'verify', '2026-01-01T00:00:00.000Z', 'test', 'completed')",
+            [],
+        )
+        .unwrap();
+        for id in 1..=ITEMS {
+            let (series, season, episode) = (id / 100, id / 20 % 5 + 1, id % 20 + 1);
+            let name = format!("Series.{series}.S0{season}E{episode:02}.1080p.BluRay.x264.mkv");
+            let file = format!(r"D:\Séries\Series {series}\Season {season}\{name}");
+            let day = |n: i64| format!("2026-{:02}-{:02}T10:00:00.000Z", n % 12 + 1, n % 28 + 1);
+            tx.execute(
+                "INSERT INTO item (id, uuid, created_at) VALUES (?1, ?2, ?3)",
+                params![id, format!("uuid-{id}"), day(id)],
+            )
+            .unwrap();
+            tx.execute(
+                "INSERT INTO reference (id, item_id, size, created_at, origin) \
+                 VALUES (?1, ?1, ?2, ?3, 'created')",
+                params![id, id * 7919 % 1_000_003, day(id)],
+            )
+            .unwrap();
+            tx.execute(
+                "INSERT INTO reference_hash (reference_id, algorithm, hex) VALUES (?1, 'sha256', ?2)",
+                params![id, format!("{id:064x}")],
+            )
+            .unwrap();
+            tx.execute(
+                "INSERT INTO location (item_id, path, path_key, file_name, first_seen_at, last_seen_at) \
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?5)",
+                params![id, file, platform::path_key(&file), name, day(id)],
+            )
+            .unwrap();
+            // One file in ten never verified.
+            if id % 10 != 0 {
+                for check in 0..CHECKS {
+                    let at = day(id + check * 3);
+                    tx.execute(
+                        "INSERT INTO verification (operation_id, item_id, reference_id, observed_path, \
+                         observed_size, started_at, finished_at, outcome) \
+                         VALUES (1, ?1, ?1, ?2, 1, ?3, ?3, 'match')",
+                        params![id, file, at],
+                    )
+                    .unwrap();
+                }
+            }
+        }
+        tx.commit().unwrap();
+    }
+    println!(
+        "{ITEMS} references, {CHECKS} verifications each: filled in {:?}",
+        filled.elapsed()
+    );
+    for column in [
+        BrowseColumn::Folder,
+        BrowseColumn::Name,
+        BrowseColumn::Size,
+        BrowseColumn::Recorded,
+        BrowseColumn::LastCheck,
+    ] {
+        for descending in [false, true] {
+            let order = BrowseOrder { column, descending };
+            let started = std::time::Instant::now();
+            let page = store.browse("", 2_000, Listed::Active, order).unwrap();
+            let all = started.elapsed();
+            let started = std::time::Instant::now();
+            let searched = store
+                .browse("season 3", 2_000, Listed::Active, order)
+                .unwrap();
+            let search = started.elapsed();
+            assert_eq!((page.total, page.rows.len()), (ITEMS as u64, 2_000));
+            println!(
+                "{column:?} {}: all {all:?}, search \"season 3\" ({} found) {search:?}",
+                if descending { "desc" } else { "asc" },
+                searched.total
+            );
+        }
+    }
 }
 
 #[test]

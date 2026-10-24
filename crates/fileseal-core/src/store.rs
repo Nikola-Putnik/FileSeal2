@@ -28,8 +28,8 @@ use crate::problem::{Problem, ProblemKind};
 use crate::timestamp;
 
 pub use browse::{
-    Counts, CurrentLocation, ItemHistory, Listed, LocationRecord, ReferencePage, ReferenceRow,
-    Relocated, Restored, VerificationRecord,
+    BrowseColumn, BrowseOrder, Counts, CurrentLocation, ItemHistory, Listed, LocationRecord,
+    ReferencePage, ReferenceRow, Relocated, Restored, VerificationRecord,
 };
 pub use schema::{APPLICATION_ID, SCHEMA_VERSION};
 

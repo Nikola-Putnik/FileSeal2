@@ -135,3 +135,35 @@ Ce que cette mesure a fait corriger :
 - **Les indices par nom (R7)** en prennent 21 s sur 48,6. Chaque nouveau fichier dont le nom est déjà dans la base (ici, chaque nom existe dans 100 dossiers) donne jusqu'à 20 contrôles de présence sur le disque, de 16 µs chacun. Sans indices, la création prend 27,8 s. C'est le cas d'une photothèque (`IMG_0001.JPG` dans chaque dossier). **Gardé** : l'indice sert à retrouver un fichier déplacé puis modifié, et son coût est borné (0,4 ms par fichier, sans augmenter avec la base). Sur ce SSD, une photo de 5 Mo se lit en 2,5 ms ; sur un disque dur, en 30 ms.
 - **Essayé sans gain** : un contrôle de présence par les seuls attributs (`GetFileAttributesW`) au lieu de `Path::exists` (15,6 µs au lieu de 16,7) ; un cache SQLite de 64 Mo au lieu de 2 (48,9 s). Non retenus.
 - **Regrouper les écritures par paquets** (piste de l'étape 7) : **non fait**. Depuis `synchronous=NORMAL`, une transaction n'attend plus le disque. Il resterait au plus 0,3 ms par fichier à gagner (écart entre créer sans indices, 0,56 ms, et vérifier, 0,30 ms). En échange, la règle deviendrait plus fragile : un fichier ne pourrait être annoncé « créé » qu'après la validation de tout son paquet.
+
+## 2026-10-24 — Base : taille et tri de l'écran Bases, même machine
+
+### Taille d'une base
+
+Ligne de commande `--release`, 10 000 fichiers, SHA-256 dans la base seule, chemins de 205 caractères :
+
+| | Taille |
+|---|---|
+| Base vide | 86 Ko |
+| 10 000 références | 18,0 Mo, soit 1,8 Ko par référence |
+| Chaque vérification des 10 000 fichiers | +4,5 Mo, soit 450 octets par fichier vérifié |
+
+Avec des noms plus longs de 100 caractères : 9 octets de plus par caractère et par référence, 1,4 par vérification. Pour un chemin d'environ 80 caractères, on peut compter environ 1 Ko par référence et 300 octets par vérification. **C'est l'historique des vérifications qui fait grossir une base** : 10 000 fichiers vérifiés chaque mois pendant 10 ans donnent environ 370 Mo. Une référence retirée garde sa place (environ 1 Ko et ses vérifications), sans en prendre davantage.
+
+### Trier les références (écran Bases)
+
+Le tri est fait par la base sur toutes les références trouvées, puis les 2 000 premières sont envoyées. La requête tourne hors du fil de la fenêtre : un tri long retarderait l'affichage de la liste, sans jamais figer l'application.
+
+Base de 100 000 références avec 5 vérifications chacune (une sur dix jamais vérifiée), test `listing_a_large_database_in_every_order` en `--release`, 2 000 lignes :
+
+| Ordre | Toute la base | Recherche « season 3 » (20 000 trouvées) |
+|---|---|---|
+| Dossier (chemin), croissant ou décroissant | 29 ms | 41 ms |
+| Nom | 75 à 128 ms | 76 à 120 ms |
+| Taille | 101 ms | 88 ms |
+| Enregistrée le | 112 ms | 99 ms |
+| Dernière vérification | 113 à 118 ms | 96 à 98 ms |
+
+Le tri par chemin suit l'index des emplacements actuels, sans trier le reste. Les autres ordres trient toutes les références trouvées, ce qui coûte environ 1 µs par référence.
+
+Dans la fenêtre (`tauri dev`), sur une base réelle de 41 036 références : 50 à 200 ms entre le clic sur un en-tête et la liste triée, transfert des 2 000 lignes compris.

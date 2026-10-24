@@ -44,6 +44,37 @@ pub enum Listed {
     Retired,
 }
 
+/// The column references are listed by (the columns of the Databases
+/// screen).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub enum BrowseColumn {
+    /// The file name, whatever the folder (case ignored).
+    Name,
+    /// The whole path: by folder, then by name within a folder.
+    #[default]
+    Folder,
+    Size,
+    /// When the current reference was recorded; for removed items, when
+    /// they were removed.
+    Recorded,
+    /// The last verification. Never verified comes first in ascending order:
+    /// what most needs verifying.
+    LastCheck,
+}
+
+/// The order of a listing of references. Applied by the database to every
+/// reference found, before keeping the first ones: the first of the whole
+/// database, not of a page.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct BrowseOrder {
+    pub column: BrowseColumn,
+    pub descending: bool,
+}
+
 /// Items put back in the database.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Restored {
@@ -174,13 +205,14 @@ impl Store {
     /// Current references whose path contains `query` (case ignored), or
     /// whose hash starts with it when it looks like one (8 hexadecimal
     /// digits or more). An empty query lists everything. At most `limit`
-    /// rows, by path; `total` says how many match. A removed item is listed
-    /// at the place it was.
+    /// rows, the first in `order`; `total` says how many match. A removed
+    /// item is listed at the place it was.
     pub fn browse(
         &self,
         query: &str,
         limit: u32,
         listed: Listed,
+        order: BrowseOrder,
     ) -> Result<ReferencePage, Problem> {
         let (from, value) = matching(query, listed);
         let bind = |statement: &mut rusqlite::Statement| -> rusqlite::Result<()> {
@@ -205,11 +237,12 @@ impl Store {
         let sql = format!(
             "SELECT l.item_id, l.path, r.size, r.created_at, r.id, \
              (SELECT v.finished_at FROM verification v WHERE v.item_id = l.item_id \
-              ORDER BY v.finished_at DESC, v.id DESC LIMIT 1), \
+              ORDER BY v.finished_at DESC, v.id DESC LIMIT 1) AS last_checked_at, \
              (SELECT v.outcome FROM verification v WHERE v.item_id = l.item_id \
               ORDER BY v.finished_at DESC, v.id DESC LIMIT 1), \
              i.retired_at \
-             {from} ORDER BY l.path_key LIMIT {limit}"
+             {from} ORDER BY {} LIMIT {limit}",
+            order_by(order, listed)
         );
         let mut statement = self.conn.prepare(&sql).map_err(db_problem)?;
         bind(&mut statement).map_err(db_problem)?;
@@ -455,6 +488,24 @@ impl Store {
         tx.commit().map_err(db_problem)?;
         Ok(done)
     }
+}
+
+/// The `ORDER BY` of a listing, the path breaking ties so that the order is
+/// always the same. By path, the index of current locations gives the
+/// first rows without sorting the others.
+fn order_by(order: BrowseOrder, listed: Listed) -> String {
+    let direction = if order.descending { "DESC" } else { "ASC" };
+    let key = match order.column {
+        BrowseColumn::Name => "l.file_name COLLATE NOCASE",
+        BrowseColumn::Folder => return format!("l.path_key {direction}"),
+        BrowseColumn::Size => "r.size",
+        BrowseColumn::Recorded => match listed {
+            Listed::Active => "r.created_at",
+            Listed::Retired => "i.retired_at",
+        },
+        BrowseColumn::LastCheck => "last_checked_at",
+    };
+    format!("{key} {direction}, l.path_key")
 }
 
 /// The `FROM … WHERE …` of a search of the references, with the value to

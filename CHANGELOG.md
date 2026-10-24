@@ -2,6 +2,7 @@
 
 ## À venir
 
+- **Écran Bases : trier les références** en cliquant sur les en-têtes (nom, dossier, taille, date d'enregistrement, dernière vérification). Le tri porte sur toute la base, pas seulement sur les 2 000 lignes affichées, et prend moins d'un quart de seconde pour 100 000 références.
 - **« Vider la liste »** ne demande plus de confirmation : rien n'est supprimé du disque.
 
 ## 2.4.0 — 2026-10-24

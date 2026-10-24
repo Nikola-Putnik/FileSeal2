@@ -225,7 +225,7 @@ Onglet **Bases**, en haut de la fenêtre. La liste et les résultats de l'écran
 - **Disques** : où sont aujourd'hui les fichiers de la base, disque par disque.
   - **Un disque revenu sous une autre lettre** se règle en trois clics : onglet **Bases**, **Mettre à jour vers F:\…**, **Confirmer**.
   - **Réaffecter…** : pour un dossier déplacé, copié ou renommé ailleurs. Un aperçu indique combien de fichiers sont retrouvés avant d'appliquer.
-- **Références** : recherche par nom, dossier ou début de hash, avec la date et le résultat de la dernière vérification. L'**historique** de la ligne choisie montre ses versions, ses emplacements successifs et ses vérifications.
+- **Références** : recherche par nom, dossier ou début de hash, avec la date et le résultat de la dernière vérification. **Cliquez sur un en-tête de colonne pour trier** (un second clic inverse l'ordre) : par exemple « Taille » pour les plus gros fichiers de la base, ou « Dernière vérification » pour voir d'abord ceux jamais vérifiés. L'**historique** de la ligne choisie montre ses versions, ses emplacements successifs et ses vérifications.
 - **Retirer des références de la base** : pour un fichier supprimé exprès, un dossier ajouté par erreur, un disque dont vous vous êtes séparé.
   - Choisissez des lignes (Maj, Ctrl, Ctrl+A), puis **Retirer la sélection de la base**. Ou cherchez un dossier, puis **Retirer les N résultats de la base**.
   - Une référence retirée ne sert plus ni à vérifier ni à rechercher. Vos fichiers et leurs fichiers de hash ne sont pas touchés.
