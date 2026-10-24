@@ -38,7 +38,7 @@ L'écran Fichiers, de haut en bas :
 6. **Barre du bas**, toujours visible :
    - **avant un lot** : la phrase de confirmation, puis le bouton de lancement. Par exemple : « Vérifier 1 234 fichiers (456 Go) avec leurs fichiers de hash et la base « Films ». » Tant qu'il manque quelque chose, la phrase dit quoi (« Ajoutez d'abord des fichiers à la liste », « Cochez au moins un algorithme »…) ;
    - **pendant un lot** : la progression d'ensemble (pondérée par les octets), les boutons **Pause / Reprendre** et **Annuler**. Une ligne donne les fichiers terminés, le volume lu, le débit, le temps écoulé et restant ; une autre, le fichier lu sur chaque disque avec son pourcentage ;
-   - **après un lot** : le bilan, les **décisions pour tous les résultats** et l'export du rapport CSV, au-dessus de la phrase et du bouton de lancement. Les causes d'un arrêt (base perdue, disques disparus, arrêt demandé) s'y affichent aussi.
+   - **après un lot** : le bilan suivi de « Exporter le rapport… », puis les **décisions pour tous les résultats**. Un trait les sépare de la phrase et du bouton de lancement, en dessous, pour qu'on ne confonde pas les deux boutons. Les causes d'un arrêt (base perdue, disques disparus, arrêt demandé) s'y affichent aussi.
 
 ## La liste
 

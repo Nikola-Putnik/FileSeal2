@@ -56,6 +56,9 @@
           summary.notProcessed,
         )}
       </p>
+      <button type="button" class="export" onclick={onexport} disabled={run.running}>
+        {t().report.export}
+      </button>
       {#if updates.length > 0 || moves.length > 0 || acceptances.length > 0}
         <div class="actions" role="group" aria-label={t().results.forAll}>
           <span class="muted">{t().results.forAll}</span>
@@ -85,9 +88,6 @@
           {/if}
         </div>
       {/if}
-      <button type="button" class="export" onclick={onexport} disabled={run.running}>
-        {t().report.export}
-      </button>
     </div>
     {#if summary.databaseProblem}
       <p class="problem" role="alert">
@@ -108,6 +108,12 @@
 </section>
 
 <style>
+  /* Set apart from the launch line below it, whose button is the main one. */
+  .results {
+    padding-bottom: 0.55rem;
+    margin-bottom: 0.55rem;
+    border-bottom: 1px solid var(--border);
+  }
   .results p {
     margin: 0.2rem 0;
   }
@@ -120,14 +126,13 @@
   .summary {
     font-weight: 600;
   }
+  /* The decisions after the summary and its export, at a distance. */
   .actions {
+    margin-left: 1rem;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.4rem;
-  }
-  .export {
-    margin-left: auto;
   }
   .warning {
     color: var(--warn);
