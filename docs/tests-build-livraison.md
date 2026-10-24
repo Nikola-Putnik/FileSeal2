@@ -150,6 +150,7 @@ Produit dans `target\release\bundle\` :
 
 - **La version** est celle de `[workspace.package]` dans `Cargo.toml` : elle vaut pour le moteur, l'application, l'installateur et les informations de version de Windows. `package.json` doit dire la même (test `the_interface_package_has_the_same_version`).
 - **Icône** : `assets\icon.svg` est la source. `npx tauri icon assets\icon.svg -o <dossier temporaire>` la décline dans toutes les tailles ; copier dans `src-tauri\icons\` les seuls fichiers listés dans `tauri.conf.json`, les autres servent à d'autres plateformes.
+- **Aucun chemin de l'ordinateur de construction** dans les programmes publiés : Rust y garde les chemins des sources des dépendances (dans le profil Windows, avec le nom de session) pour ses messages d'erreur internes. `build.cmd` les rend relatifs (`--remap-path-prefix`, calculé depuis `%USERPROFILE%` au moment de la construction), puis refuse la livraison si le chemin du profil figure encore dans `fileseal.exe` ou `fileseal-cli.exe`. L'option `trim-paths` de Cargo le ferait aussi, mais n'est pas encore stable.
 - Le premier build télécharge les outils NSIS de Tauri (accès Internet).
 - Pas de signature de code : voir [limites.md](limites.md).
 
@@ -160,9 +161,9 @@ Produit dans `target\release\bundle\` :
 3. **Contrôles manuels** de ce document : au minimum les cas réels (`real-cases.ps1`) et, si l'interface a changé, le clavier, le Narrateur et le contraste élevé.
 4. **Construire** : `scripts\build.cmd`.
 5. **Installer et désinstaller** (procédure ci-dessous), sur une session sans droits administrateur.
-6. **Nouveautés** : une entrée dans [CHANGELOG.md](../CHANGELOG.md), avec ce qui change pour l'utilisateur.
+6. **Nouveautés** : une entrée dans [CHANGELOG.md](../CHANGELOG.md), en anglais comme le README (la face publique du dépôt), avec ce qui change pour l'utilisateur.
 7. **Commit et étiquette** : `git tag v<version>`.
-8. **Publication** sur https://github.com/Nikola-Putnik/FileSeal2 : `git push origin main v<version>`, puis une « release » à l'étiquette (page Releases du dépôt), avec l'installateur, le zip et leurs deux fichiers `.sha256`, et les nouveautés en texte.
+8. **Publication** sur https://github.com/Nikola-Putnik/FileSeal2 : `git push origin main v<version>`, puis une « release » à l'étiquette (page Releases du dépôt), avec l'installateur, le zip et leurs deux fichiers `.sha256`, et les nouveautés de `CHANGELOG.md` en texte. Sans `gh`, elle se crée par l'API REST de GitHub (`POST /repos/…/releases`, puis un envoi par fichier sur `uploads.github.com`), avec l'identifiant que Git utilise déjà pour pousser.
 
 ## Installer, mettre à jour, désinstaller (contrôle de livraison)
 

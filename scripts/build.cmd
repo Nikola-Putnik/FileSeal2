@@ -11,8 +11,17 @@ for /f "tokens=3" %%v in ('findstr /b /c:"version = " Cargo.toml') do set VERSIO
 if "%VERSION%"=="" (echo Version introuvable dans Cargo.toml & exit /b 1)
 echo === FileSeal %VERSION%
 
+rem Un programme publie ne garde aucun chemin de cet ordinateur. Rust garde
+rem ceux des sources des dependances (dans le profil Windows, donc avec le
+rem nom de session) pour ses messages d'erreur internes : ils deviennent
+rem relatifs. Le controle apres la construction le garantit.
+set "RUSTFLAGS=--remap-path-prefix=%USERPROFILE%=~ --remap-path-prefix=%CD%=."
+
 call npm run tauri build || exit /b 1
 cargo build --release -p fileseal-cli || exit /b 1
+
+rem Controle : le chemin du profil ne doit figurer dans aucun des programmes.
+powershell -NoProfile -Command "$profil = $env:USERPROFILE; foreach ($f in 'target\release\fileseal.exe', 'target\release\fileseal-cli.exe') { $texte = [Text.Encoding]::GetEncoding(28591).GetString([IO.File]::ReadAllBytes($f)); if ($texte.IndexOf($profil, [StringComparison]::OrdinalIgnoreCase) -ge 0) { Write-Host ($f + ' contient le chemin du profil Windows : livraison refusee.'); exit 1 } }" || exit /b 1
 
 set BUNDLE=target\release\bundle
 set SETUP=%BUNDLE%\nsis\FileSeal_%VERSION%_x64-setup.exe
