@@ -1140,7 +1140,7 @@ dependencies = [
 
 [[package]]
 name = "fileseal"
-version = "2.4.0"
+version = "2.5.0"
 dependencies = [
  "fileseal-core",
  "serde",
@@ -1156,7 +1156,7 @@ dependencies = [
 
 [[package]]
 name = "fileseal-cli"
-version = "2.4.0"
+version = "2.5.0"
 dependencies = [
  "clap",
  "fileseal-core",
@@ -1165,7 +1165,7 @@ dependencies = [
 
 [[package]]
 name = "fileseal-core"
-version = "2.4.0"
+version = "2.5.0"
 dependencies = [
  "encoding_rs",
  "md-5",
