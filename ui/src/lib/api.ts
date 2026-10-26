@@ -132,14 +132,28 @@ export const api = {
     onUpdate: (update: BatchUpdate) => void,
   ) =>
     new Promise<BatchSummary>((resolve, reject) => {
-      // As for the selection: the answer can overtake the last updates, and
-      // the last update carries the summary.
+      // Over when both have arrived: the last update, which carries the
+      // summary (as for the selection, the answer can overtake it), and the
+      // answer, sent once the job has ended. Between the two, the database
+      // is still busy: reading its counts there would fail.
+      let summary: BatchSummary | null = null;
+      let answered = false;
+      const settle = () => {
+        if (summary && answered) resolve(summary);
+      };
       const channel = new Channel<BatchUpdate>();
       channel.onmessage = (update) => {
         onUpdate(update);
-        if (update.summary) resolve(update.summary);
+        if (update.summary) {
+          summary = update.summary;
+          settle();
+        }
       };
-      invoke<BatchSummary>('run_batch', { files, options, useDatabase, onUpdate: channel }).catch(
+      invoke<BatchSummary>('run_batch', { files, options, useDatabase, onUpdate: channel }).then(
+        () => {
+          answered = true;
+          settle();
+        },
         reject,
       );
     }),

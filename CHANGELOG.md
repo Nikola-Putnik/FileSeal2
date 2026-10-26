@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Fix**: after a run, the number of references shown for the active database sometimes stayed as it was before the run.
 - **Third-party notices**: the licenses of the open-source code FileSeal contains come with the program (THIRD-PARTY-NOTICES.txt, installed beside it and in the portable zip), with its own MIT license (LICENSE.txt).
 
 ## 2.5.0 — 2026-10-24
