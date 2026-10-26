@@ -96,6 +96,20 @@ Réglage « Fichiers déjà référencés » de l'action Créer (`CreateOptions:
 | Fichier et fichier de hash renommés ensemble (le nom inscrit est l'ancien), hash identique | « déjà présent, identique », remarque « le nom inscrit n'est pas celui du fichier », fichier de hash laissé tel quel |
 | Chemin de plus de 260 caractères | écrit normalement (chemins Windows étendus `\\?\`) |
 
+## Listes par dossier : `SHA256SUMS`, `MD5SUMS`
+
+Destination de **Créer**, au choix avec les deux autres (réglage « Une liste de hash par dossier ») : chaque dossier qui contient des fichiers du lot reçoit **une liste par algorithme**, `SHA256SUMS` ou `MD5SUMS`, avec une ligne par fichier. Code : `crates/fileseal-core/src/sums.rs`, scénarios `ops/sums_tests.rs`.
+
+- **Elle ne nomme que les fichiers de son dossier**, sans sous-dossier : `sha256sum -c SHA256SUMS`, lancé depuis ce dossier, la vérifie. Elle reste juste quand on déplace ou renomme le dossier entier. Un dossier avec des sous-dossiers a donc une liste dans chacun.
+- **Format** : celui des fichiers de hash (UTF-8, `<hex>  <nom>`, LF, échappement GNU), lignes nouvelles triées par nom.
+- **Écrite une fois par dossier**, quand tous ses fichiers du lot ont leur résultat. Récrire la liste à chaque fichier coûterait des Go d'écritures pour un dossier de 10 000 photos. Entre-temps, un fichier lu est « En attente de son dossier » ; son statut définitif arrive avec l'écriture de la liste. À la fin d'un lot, même annulé, les listes des fichiers traités sont écrites.
+- **Les lignes déjà présentes ne sont jamais modifiées** : elles sont gardées octet pour octet (y compris CRLF, `*`, commentaires d'un autre outil), et les nouvelles sont ajoutées à la suite. Publication atomique : fichier temporaire, écriture forcée sur le disque, puis renommage par-dessus l'ancienne liste. Si la liste a changé depuis sa lecture (un autre programme), elle est relue avant d'écrire.
+- **Une ligne existante identique** : « déjà présente ». **Une ligne avec une autre valeur** : conflit, rien n'est écrit pour ce fichier, comme pour un fichier de hash. **Une liste illisible** n'est jamais remplacée : la destination échoue pour ses fichiers.
+- **Accepter une nouvelle version** remplace la valeur de la ligne du fichier, et elle seule. C'est la seule modification d'une ligne existante, sur décision de l'utilisateur.
+- **Lecture** : une ligne n'est prise que pour le nom qu'elle porte (sans casse sous Windows). Contrairement à un fichier de hash dédié, l'unique ligne d'une liste n'est jamais attribuée à un autre nom. Deux lignes du même nom qui ne s'accordent pas rendent la référence inutilisable.
+- **Vérifier** avec « Fichiers de hash » consulte aussi la ligne du fichier dans la liste de son dossier : la source s'appelle « Liste SHA-256 du dossier ». Les listes lues récemment sont gardées en mémoire (8 au plus), pour ne pas relire la même liste pour chaque fichier.
+- **Sauter les fichiers déjà référencés**, et **ajouter leurs références à la base sans les relire**, fonctionnent aussi avec les lignes des listes.
+
 ## Vérifier à partir d'un fichier de hash
 
 Choisir ou glisser un fichier de hash dans FileSeal fait passer en « Vérifier ». FileSeal vérifie alors **les fichiers qu'il liste**, comme `sha256sum -c`. C'est le cas pour un fichier nommé `*.sha256` ou `*.md5`, ou `SHA256SUMS`, `MD5SUMS`, `sha256sums.txt`… Aucune base n'est nécessaire ; la base active peut être consultée en plus.

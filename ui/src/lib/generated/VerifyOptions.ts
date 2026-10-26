@@ -2,7 +2,8 @@
 
 export type VerifyOptions = { 
 /**
- * Look for `file.<algo>` next to the file.
+ * Look for `file.<algo>` next to the file, and for the file's line in
+ * its folder's hash list (`SHA256SUMS`).
  */
 useSidecar: boolean, 
 /**

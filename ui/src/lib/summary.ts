@@ -25,6 +25,7 @@ export function settingsSummary(
     parts.push(algorithms.join(' + ') || words.none);
     const destinations = [
       settings.writeSidecar ? words.hashFiles : null,
+      settings.writeSums ? words.hashLists : null,
       database ? words.database : null,
     ].filter((d): d is string => d !== null);
     parts.push(destinations.join(' + ') || words.none);

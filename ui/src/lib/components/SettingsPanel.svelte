@@ -52,6 +52,10 @@
           {t().settings.sidecarNextToFile}
         </label>
         <label>
+          <input type="checkbox" bind:checked={settings.writeSums} {disabled} />
+          {t().settings.listPerFolder}
+        </label>
+        <label>
           <input
             type="checkbox"
             bind:checked={settings.useDatabase}

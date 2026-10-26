@@ -35,6 +35,8 @@ Quoi qu'il arrive, chaque fichier de la liste reçoit un et un seul résultat, c
 
 **Traités + échoués + annulés + non traités + doublons = total**, exactement. C'est le critère d'acceptation de l'étape 7, et chaque test de lot le vérifie.
 
+**Listes par dossier** (`SHA256SUMS`) : un fichier dont la ligne attend la liste de son dossier reçoit d'abord un résultat provisoire, « En attente de son dossier », puis son résultat définitif quand la liste est écrite, c'est-à-dire quand tous les fichiers de ce dossier dans le lot ont leur résultat. Il n'est compté qu'une fois, à son résultat définitif ; le rapport CSV ne garde que celui-ci ([formats-hash.md](formats-hash.md)).
+
 ## Pause et annulation
 
 - **Pause** : les lecteurs s'arrêtent au bloc suivant (1 Mio), en gardant leur fichier ouvert, et ne commencent aucun nouveau fichier. Pendant la pause, le débit n'est pas mesuré ; à la reprise, la mesure repart de zéro, et le temps restant affiche « estimation en cours » pendant quelques secondes.

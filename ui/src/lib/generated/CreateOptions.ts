@@ -8,6 +8,11 @@ export type CreateOptions = { algorithms: Array<Algorithm>,
  */
 writeSidecar: boolean, 
 /**
+ * Add the file's line to its folder's hash list (`SHA256SUMS`,
+ * `MD5SUMS`), written once every file of the folder is done.
+ */
+writeSums: boolean, 
+/**
  * Create a new item even when the content looks like a known item that
  * moved here (the user decided it is another copy).
  */

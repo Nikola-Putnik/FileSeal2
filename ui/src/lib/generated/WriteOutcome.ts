@@ -3,4 +3,4 @@
 /**
  * What happened to one destination.
  */
-export type WriteOutcome = "written" | "completed" | "alreadyPresent" | "conflict" | "invalid" | "skipped" | "needsDecision" | "notRead" | "imported" | "failed";
+export type WriteOutcome = "written" | "completed" | "alreadyPresent" | "conflict" | "invalid" | "skipped" | "needsDecision" | "notRead" | "imported" | "pending" | "failed";

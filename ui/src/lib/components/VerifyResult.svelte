@@ -79,6 +79,10 @@
             {t().result.hashFile(
               source.expected.map((d) => ALGORITHM_NAMES[d.algorithm]).join(', '),
             )}
+          {:else if source.source === 'hashList'}
+            {t().result.hashList(
+              source.expected.map((d) => ALGORITHM_NAMES[d.algorithm]).join(', '),
+            )}
           {:else}
             {t().result.database(databaseName ?? '?')}
           {/if}

@@ -7,6 +7,7 @@ import { settingsSummary } from './summary';
 const none: RunPreferences = {
   algorithms: null,
   writeSidecar: null,
+  writeSums: null,
   useSidecar: null,
   useDatabase: null,
   followMoves: null,

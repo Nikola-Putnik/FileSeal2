@@ -26,6 +26,7 @@ use crate::problem::{Problem, ProblemKind};
 use crate::reader::{self, Control, HashedFile};
 use crate::sidecar::{self, SidecarLookup, SidecarNote};
 use crate::store::{KnownReference, NewLocation, NewVerification, SharedStore};
+use crate::sums;
 use crate::timestamp;
 
 pub mod content;
@@ -53,6 +54,10 @@ pub struct CreateOptions {
     pub algorithms: Vec<Algorithm>,
     /// Write `file.<algo>` next to the file.
     pub write_sidecar: bool,
+    /// Add the file's line to its folder's hash list (`SHA256SUMS`,
+    /// `MD5SUMS`), written once every file of the folder is done.
+    #[serde(default)]
+    pub write_sums: bool,
     /// Create a new item even when the content looks like a known item that
     /// moved here (the user decided it is another copy).
     #[serde(default)]
@@ -91,7 +96,8 @@ pub enum ExistingReferences {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct VerifyOptions {
-    /// Look for `file.<algo>` next to the file.
+    /// Look for `file.<algo>` next to the file, and for the file's line in
+    /// its folder's hash list (`SHA256SUMS`).
     pub use_sidecar: bool,
     /// A file found elsewhere than recorded is attached to its item without
     /// asking (`follow`).
@@ -122,6 +128,9 @@ pub enum CreateStatus {
     /// The content is a known item that seems to have moved here: the user
     /// decides between attaching it and creating a new item.
     NeedsDecision,
+    /// Provisional: its line waits for the folder's hash list, written once
+    /// every file of the folder is done. Replaced then by the final status.
+    Pending,
     Failed,
     Cancelled,
 }
@@ -149,6 +158,8 @@ pub enum WriteOutcome {
     NotRead,
     /// Database: recorded from the file's hash files, without reading it.
     Imported,
+    /// Folder's hash list: written once every file of the folder is done.
+    Pending,
     Failed,
 }
 
@@ -161,6 +172,9 @@ pub struct SidecarResult {
     /// False for a hash file that was not asked for but was checked because
     /// it exists (an existing `.md5` when creating SHA-256).
     pub requested: bool,
+    /// A line of the folder's hash list (`SHA256SUMS`), not a hash file of
+    /// its own.
+    pub list: bool,
     pub outcome: WriteOutcome,
     /// Value found in an existing hash file.
     pub existing: Option<String>,
@@ -190,6 +204,7 @@ pub struct CreateReport {
     #[ts(type = "number | null")]
     pub size: Option<u64>,
     pub digests: Vec<Digest>,
+    /// Its hash files, and its lines in its folder's hash lists.
     pub sidecars: Vec<SidecarResult>,
     pub database: Option<DatabaseResult>,
     /// Why the file could not be read, if it could not.
@@ -237,22 +252,44 @@ pub fn create_reference(
     let mut selected = options.algorithms.clone();
     selected.sort_unstable();
     selected.dedup();
-    if selected.is_empty() || (!options.write_sidecar && db.is_none()) {
+    if selected.is_empty() || (!options.write_sidecar && !options.write_sums && db.is_none()) {
         return report.fail(Problem::new(
             ProblemKind::Io,
             "no algorithm or no destination selected",
         ));
     }
 
-    // Existing references: every hash file present (requested or not) and
-    // the database entry for this path.
-    let mut sidecars: Vec<(Algorithm, PathBuf, SidecarLookup, bool)> = Vec::new();
+    // Existing references: every hash file and folder list line present
+    // (requested or not), and the database entry for this path.
+    let mut sidecars: Vec<HashRef> = Vec::new();
     for algorithm in Algorithm::ALL {
-        let requested = options.write_sidecar && selected.contains(&algorithm);
-        let lookup = sidecar::lookup(&path, algorithm);
-        if requested || lookup != SidecarLookup::Absent {
-            let target = sidecar::path_for(&path, algorithm).unwrap_or_default();
-            sidecars.push((algorithm, target, lookup, requested));
+        for list in [false, true] {
+            let asked = if list {
+                options.write_sums
+            } else {
+                options.write_sidecar
+            };
+            let requested = asked && selected.contains(&algorithm);
+            let (lookup, target) = if list {
+                (
+                    sums::lookup(&path, algorithm),
+                    sums::path_for(&path, algorithm),
+                )
+            } else {
+                (
+                    sidecar::lookup(&path, algorithm),
+                    sidecar::path_for(&path, algorithm),
+                )
+            };
+            if requested || lookup != SidecarLookup::Absent {
+                sidecars.push(HashRef {
+                    algorithm,
+                    path: target.unwrap_or_default(),
+                    lookup,
+                    requested,
+                    list,
+                });
+            }
         }
     }
     let mut database = db.as_ref().map(|_| DatabaseResult {
@@ -328,8 +365,8 @@ pub fn create_reference(
 
     // Read once, with every algorithm needed to check the existing references.
     let mut needed = selected.clone();
-    for (_, _, lookup, _) in &sidecars {
-        if let SidecarLookup::Found { digest, .. } = lookup {
+    for existing in &sidecars {
+        if let SidecarLookup::Found { digest, .. } = &existing.lookup {
             needed.push(digest.algorithm);
         }
     }
@@ -344,16 +381,8 @@ pub fn create_reference(
         Ok(hashed) => hashed,
         Err(problem) => {
             report.sidecars = sidecars
-                .into_iter()
-                .map(|(algorithm, target, lookup, requested)| {
-                    sidecar_result(
-                        algorithm,
-                        &target,
-                        &lookup,
-                        requested,
-                        WriteOutcome::Skipped,
-                    )
-                })
+                .iter()
+                .map(|existing| sidecar_result(existing, WriteOutcome::Skipped))
                 .collect();
             report.database = database;
             return report.fail(problem);
@@ -402,11 +431,11 @@ pub fn create_reference(
     // Check the existing references against what was just read.
     let mut blocked = false;
     let mut results: Vec<SidecarResult> = Vec::new();
-    for (algorithm, target, lookup, requested) in &sidecars {
-        let outcome = match lookup {
+    for existing in &sidecars {
+        let outcome = match &existing.lookup {
             SidecarLookup::Absent => WriteOutcome::Skipped, // decided below
             SidecarLookup::Found { digest, .. }
-                if computed(&hashed, *algorithm) == Some(digest) =>
+                if computed(&hashed, existing.algorithm) == Some(digest) =>
             {
                 WriteOutcome::AlreadyPresent
             }
@@ -414,9 +443,7 @@ pub fn create_reference(
             SidecarLookup::Invalid { .. } => WriteOutcome::Invalid,
         };
         blocked |= matches!(outcome, WriteOutcome::Conflict | WriteOutcome::Invalid);
-        results.push(sidecar_result(
-            *algorithm, target, lookup, *requested, outcome,
-        ));
+        results.push(sidecar_result(existing, outcome));
     }
     if let (Some(known), Some(result)) = (&known, database.as_mut()) {
         if agrees(known, &hashed) {
@@ -428,8 +455,14 @@ pub fn create_reference(
     }
 
     if !blocked {
-        for (result, (_, _, lookup, requested)) in results.iter_mut().zip(&sidecars) {
-            if *requested && *lookup == SidecarLookup::Absent {
+        for (result, existing) in results.iter_mut().zip(&sidecars) {
+            if existing.requested && existing.lookup == SidecarLookup::Absent {
+                // A folder's list is written once for all its files, by
+                // `finish_sums`: the line waits until then.
+                if existing.list {
+                    result.outcome = WriteOutcome::Pending;
+                    continue;
+                }
                 let digest =
                     computed(&hashed, result.algorithm).expect("selected algorithm hashed");
                 match sidecar::write_new(&path, digest) {
@@ -518,7 +551,7 @@ enum Unread {
 fn without_reading(
     options: &CreateOptions,
     selected: &[Algorithm],
-    sidecars: &[(Algorithm, PathBuf, SidecarLookup, bool)],
+    sidecars: &[HashRef],
     database: Option<&DatabaseResult>,
     known: Option<&KnownReference>,
     moved: bool,
@@ -526,17 +559,29 @@ fn without_reading(
     if moved
         || sidecars
             .iter()
-            .any(|(_, _, lookup, _)| matches!(lookup, SidecarLookup::Invalid { .. }))
+            .any(|s| matches!(s.lookup, SidecarLookup::Invalid { .. }))
     {
         return None;
     }
-    let found: Vec<&Digest> = sidecars
+    let found_in = |list: bool| -> Vec<&Digest> {
+        sidecars
+            .iter()
+            .filter(|s| s.list == list)
+            .filter_map(|s| match &s.lookup {
+                SidecarLookup::Found { digest, .. } => Some(digest),
+                _ => None,
+            })
+            .collect()
+    };
+    let mut found: Vec<&Digest> = found_in(false);
+    found.extend(found_in(true));
+    // References that disagree with each other: reading says which is right.
+    if found
         .iter()
-        .filter_map(|(_, _, lookup, _)| match lookup {
-            SidecarLookup::Found { digest, .. } => Some(digest),
-            _ => None,
-        })
-        .collect();
+        .any(|a| found.iter().any(|b| a.algorithm == b.algorithm && a != b))
+    {
+        return None;
+    }
     if let Some(known) = known
         && found.iter().any(|d| {
             algorithm::find(&known.digests, d.algorithm).is_some_and(|recorded| recorded != *d)
@@ -550,7 +595,9 @@ fn without_reading(
             .iter()
             .all(|a| digests.iter().any(|d| d.algorithm == *a)),
     };
-    if options.write_sidecar && !covers(&found) {
+    if (options.write_sidecar && !covers(&found_in(false)))
+        || (options.write_sums && !covers(&found_in(true)))
+    {
         return None;
     }
     let Some(database) = database else {
@@ -563,7 +610,12 @@ fn without_reading(
     match known {
         Some(known) => covers(&known.digests.iter().collect::<Vec<_>>()).then_some(Unread::Skip),
         None if options.import_hash_files && covers(&found) => {
-            let mut digests: Vec<Digest> = found.into_iter().cloned().collect();
+            let mut digests: Vec<Digest> = Vec::new();
+            for digest in found {
+                if algorithm::find(&digests, digest.algorithm).is_none() {
+                    digests.push(digest.clone());
+                }
+            }
             digests.sort_by_key(|d| d.algorithm);
             Some(Unread::Import(digests))
         }
@@ -575,13 +627,13 @@ fn without_reading(
 fn skipped(
     mut report: CreateReport,
     path: &Path,
-    sidecars: Vec<(Algorithm, PathBuf, SidecarLookup, bool)>,
+    sidecars: Vec<HashRef>,
     mut database: Option<DatabaseResult>,
     known: Option<&KnownReference>,
 ) -> CreateReport {
     report.size = reader::file_size(path).ok();
     report.digests = existing_digests(&sidecars, known);
-    report.sidecars = unread_sidecars(sidecars);
+    report.sidecars = unread_sidecars(&sidecars);
     if let (Some(result), Some(_)) = (database.as_mut(), known) {
         result.outcome = WriteOutcome::NotRead;
     }
@@ -600,7 +652,7 @@ fn imported(
     location: &NewLocation,
     options: &CreateOptions,
     target: DbTarget,
-    sidecars: &[(Algorithm, PathBuf, SidecarLookup, bool)],
+    sidecars: &[HashRef],
     digests: Vec<Digest>,
 ) -> Option<CreateReport> {
     // Opened for its size, date and identity; its content is not read.
@@ -632,7 +684,7 @@ fn imported(
     }
     report.size = Some(seen.size);
     report.digests = seen.digests.clone();
-    report.sidecars = unread_sidecars(sidecars.to_vec());
+    report.sidecars = unread_sidecars(sidecars);
     let observed = observed_location(path, location, &seen);
     let inserted =
         target
@@ -665,27 +717,24 @@ fn imported(
 
 /// The hash files of a file left unread: those present kept unchecked, the
 /// others not written.
-fn unread_sidecars(sidecars: Vec<(Algorithm, PathBuf, SidecarLookup, bool)>) -> Vec<SidecarResult> {
+fn unread_sidecars(sidecars: &[HashRef]) -> Vec<SidecarResult> {
     sidecars
-        .into_iter()
-        .map(|(algorithm, target, lookup, requested)| {
-            let outcome = match lookup {
+        .iter()
+        .map(|existing| {
+            let outcome = match existing.lookup {
                 SidecarLookup::Found { .. } => WriteOutcome::NotRead,
                 _ => WriteOutcome::Skipped,
             };
-            sidecar_result(algorithm, &target, &lookup, requested, outcome)
+            sidecar_result(existing, outcome)
         })
         .collect()
 }
 
 /// Every digest a file's references already give, one per algorithm.
-fn existing_digests(
-    sidecars: &[(Algorithm, PathBuf, SidecarLookup, bool)],
-    known: Option<&KnownReference>,
-) -> Vec<Digest> {
+fn existing_digests(sidecars: &[HashRef], known: Option<&KnownReference>) -> Vec<Digest> {
     let mut digests: Vec<Digest> = known.map(|k| k.digests.clone()).unwrap_or_default();
-    for (_, _, lookup, _) in sidecars {
-        if let SidecarLookup::Found { digest, .. } = lookup
+    for existing in sidecars {
+        if let SidecarLookup::Found { digest, .. } = &existing.lookup
             && algorithm::find(&digests, digest.algorithm).is_none()
         {
             digests.push(digest.clone());
@@ -715,6 +764,11 @@ fn create_status(
         .collect();
     let failed = outcomes.contains(&WriteOutcome::Failed);
     let succeeded = outcomes.iter().any(|o| *o != WriteOutcome::Failed);
+    // A line waiting for the folder's list: nothing failed so far, but
+    // nothing is said done before it is written.
+    if !failed && outcomes.contains(&WriteOutcome::Pending) {
+        return CreateStatus::Pending;
+    }
     let new = |o: &WriteOutcome| matches!(o, WriteOutcome::Written | WriteOutcome::Completed);
     let existed =
         |o: &WriteOutcome| matches!(o, WriteOutcome::AlreadyPresent | WriteOutcome::Completed);
@@ -724,6 +778,83 @@ fn create_status(
         _ if !outcomes.iter().any(new) => CreateStatus::AlreadyReferenced,
         _ if outcomes.iter().any(existed) => CreateStatus::Completed,
         _ => CreateStatus::Created,
+    }
+}
+
+/// Writes the folder's hash lists of these creations (the lines left
+/// pending), one publication per folder and algorithm, then gives each its
+/// final status. What a list could not take (another value already there,
+/// a list that cannot be read or written) fails for that file only.
+pub fn finish_sums(reports: &mut [CreateReport]) {
+    type Line = (usize, usize); // report, then its result
+    let mut groups: Vec<((PathBuf, Algorithm), Vec<Line>)> = Vec::new();
+    for (r, report) in reports.iter().enumerate() {
+        for (s, result) in report.sidecars.iter().enumerate() {
+            if result.outcome != WriteOutcome::Pending {
+                continue;
+            }
+            let dir = Path::new(&result.path)
+                .parent()
+                .unwrap_or(Path::new(""))
+                .to_path_buf();
+            let key = (dir, result.algorithm);
+            match groups.iter_mut().find(|(k, _)| *k == key) {
+                Some((_, lines)) => lines.push((r, s)),
+                None => groups.push((key, vec![(r, s)])),
+            }
+        }
+    }
+    for ((dir, algorithm), lines) in groups {
+        let mut asked = Vec::with_capacity(lines.len());
+        let mut kept = Vec::with_capacity(lines.len());
+        for (r, s) in lines {
+            let report = &reports[r];
+            let name = Path::new(&report.path)
+                .file_name()
+                .map(|n| n.to_string_lossy().into_owned());
+            match (name, algorithm::find(&report.digests, algorithm)) {
+                (Some(name), Some(digest)) => {
+                    asked.push((name, digest.clone()));
+                    kept.push((r, s));
+                }
+                _ => {
+                    let result = &mut reports[r].sidecars[s];
+                    result.outcome = WriteOutcome::Failed;
+                    result.problem = Some(Problem::new(ProblemKind::Io, "no line to write"));
+                }
+            }
+        }
+        let written = sums::add(&dir, algorithm, &asked);
+        for (i, (r, s)) in kept.into_iter().enumerate() {
+            let result = &mut reports[r].sidecars[s];
+            match &written {
+                Ok((_, outcomes)) => match &outcomes[i] {
+                    sums::Added::Written => result.outcome = WriteOutcome::Written,
+                    sums::Added::AlreadyPresent => result.outcome = WriteOutcome::AlreadyPresent,
+                    sums::Added::Conflict { existing } => {
+                        result.outcome = WriteOutcome::Failed;
+                        result.existing = existing.clone();
+                        result.problem = Some(Problem::new(
+                            ProblemKind::AlreadyExists,
+                            format!(
+                                "{} already has another value for this file: left as it is",
+                                sums::name_for(algorithm)
+                            ),
+                        ));
+                    }
+                },
+                Err(problem) => {
+                    result.outcome = WriteOutcome::Failed;
+                    result.problem = Some(problem.clone());
+                }
+            }
+        }
+    }
+    for report in reports.iter_mut() {
+        if report.status == CreateStatus::Pending {
+            report.status = create_status(false, &report.sidecars, report.database.as_ref());
+            tracing::info!(path = %report.path, status = ?report.status, "folder hash list written");
+        }
     }
 }
 
@@ -805,24 +936,30 @@ pub(crate) fn observed_location(
 fn needed_for_report(
     algorithm: Algorithm,
     selected: &[Algorithm],
-    sidecars: &[(Algorithm, PathBuf, SidecarLookup, bool)],
+    sidecars: &[HashRef],
     known: Option<&KnownReference>,
 ) -> bool {
     selected.contains(&algorithm)
         || sidecars
             .iter()
-            .any(|(a, _, lookup, _)| *a == algorithm && *lookup != SidecarLookup::Absent)
+            .any(|s| s.algorithm == algorithm && s.lookup != SidecarLookup::Absent)
         || known.is_some_and(|k| algorithm::find(&k.digests, algorithm).is_some())
 }
 
-fn sidecar_result(
+/// A reference next to a file, found or wanted: a hash file of its own
+/// (`file.sha256`), or its line in the folder's list (`SHA256SUMS`).
+struct HashRef {
     algorithm: Algorithm,
-    target: &Path,
-    lookup: &SidecarLookup,
+    path: PathBuf,
+    lookup: SidecarLookup,
+    /// A destination asked for, not only one found.
     requested: bool,
-    outcome: WriteOutcome,
-) -> SidecarResult {
-    let (existing, notes, problem) = match lookup {
+    /// A line of the folder's list.
+    list: bool,
+}
+
+fn sidecar_result(existing: &HashRef, outcome: WriteOutcome) -> SidecarResult {
+    let (existing_hex, notes, problem) = match &existing.lookup {
         SidecarLookup::Absent => (None, Vec::new(), None),
         SidecarLookup::Found { digest, notes, .. } => {
             (Some(digest.hex.clone()), notes.clone(), None)
@@ -834,11 +971,12 @@ fn sidecar_result(
         ),
     };
     SidecarResult {
-        algorithm,
-        path: target.display().to_string(),
-        requested,
+        algorithm: existing.algorithm,
+        path: existing.path.display().to_string(),
+        requested: existing.requested,
+        list: existing.list,
         outcome,
-        existing,
+        existing: existing_hex,
         notes,
         problem,
     }
@@ -909,6 +1047,8 @@ impl VerifyStatus {
 #[ts(export)]
 pub enum SourceKind {
     Sidecar,
+    /// The file's line in its folder's hash list (`SHA256SUMS`).
+    HashList,
     Database,
 }
 
@@ -1026,15 +1166,21 @@ pub(crate) fn verify_against(
     }
 
     if options.use_sidecar {
-        for algorithm in Algorithm::ALL {
-            match sidecar::lookup(&path, algorithm) {
+        let lookups = Algorithm::ALL.into_iter().flat_map(|algorithm| {
+            [
+                (SourceKind::Sidecar, sidecar::lookup(&path, algorithm)),
+                (SourceKind::HashList, sums::lookup(&path, algorithm)),
+            ]
+        });
+        for (kind, lookup) in lookups {
+            match lookup {
                 SidecarLookup::Absent => {}
                 SidecarLookup::Found {
                     path: file,
                     digest,
                     notes,
                 } => sources.push(SourceResult {
-                    source: SourceKind::Sidecar,
+                    source: kind,
                     path: file.display().to_string(),
                     expected: vec![digest],
                     expected_size: None,
@@ -1044,7 +1190,7 @@ pub(crate) fn verify_against(
                     notes,
                 }),
                 SidecarLookup::Invalid { path: file, reason } => sources.push(SourceResult {
-                    source: SourceKind::Sidecar,
+                    source: kind,
                     path: file.display().to_string(),
                     expected: Vec::new(),
                     expected_size: None,
@@ -1372,6 +1518,8 @@ fn touch(store: &SharedStore, item_id: i64, hashed: &HashedFile) {
 mod follow_tests;
 #[cfg(test)]
 mod rules_tests;
+#[cfg(test)]
+mod sums_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]

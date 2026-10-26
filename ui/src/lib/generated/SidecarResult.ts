@@ -9,7 +9,12 @@ export type SidecarResult = { algorithm: Algorithm, path: string,
  * False for a hash file that was not asked for but was checked because
  * it exists (an existing `.md5` when creating SHA-256).
  */
-requested: boolean, outcome: WriteOutcome, 
+requested: boolean, 
+/**
+ * A line of the folder's hash list (`SHA256SUMS`), not a hash file of
+ * its own.
+ */
+list: boolean, outcome: WriteOutcome, 
 /**
  * Value found in an existing hash file.
  */

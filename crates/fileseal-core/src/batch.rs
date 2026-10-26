@@ -503,7 +503,9 @@ fn check(options: &BatchOptions, store: Option<&Store>) -> Result<(), Problem> {
     let refuse = |kind, detail: &str| Err(Problem::new(kind, detail));
     match &options.action {
         BatchAction::Create(create) => {
-            if create.algorithms.is_empty() || (!create.write_sidecar && store.is_none()) {
+            if create.algorithms.is_empty()
+                || (!create.write_sidecar && !create.write_sums && store.is_none())
+            {
                 return refuse(ProblemKind::Io, "no algorithm or no destination selected");
             }
             if store.is_some_and(Store::is_read_only) {
@@ -874,6 +876,51 @@ struct Collector<'c, 'a> {
     bytes_finished: u64,
     summary: BatchSummary,
     statuses: HashMap<String, u32>,
+    /// Creating with folder hash lists (`write_sums`).
+    lists: Option<Lists>,
+}
+
+/// The folder hash lists of a batch: each list is written once, when every
+/// file of its folder in the batch has its result. Until then, the files
+/// whose line waits are shown as such, and counted once the list is
+/// written, with their final status.
+struct Lists {
+    /// The folder of each file of the list.
+    folder_of: Vec<usize>,
+    /// Files of each folder still to come.
+    left: Vec<usize>,
+    /// Entries waiting for their folder's list.
+    waiting: HashMap<usize, Vec<BatchEntry>>,
+}
+
+impl Lists {
+    fn new(plan: &Plan) -> Lists {
+        let mut ids: HashMap<String, usize> = HashMap::new();
+        let mut left: Vec<usize> = Vec::new();
+        let folder_of = plan
+            .files
+            .iter()
+            .map(|file| {
+                let key = file
+                    .path
+                    .parent()
+                    .map(|dir| platform::path_key(&dir.display().to_string()))
+                    .unwrap_or_default();
+                let next = ids.len();
+                let id = *ids.entry(key).or_insert(next);
+                if id == left.len() {
+                    left.push(0);
+                }
+                left[id] += 1;
+                id
+            })
+            .collect();
+        Lists {
+            folder_of,
+            left,
+            waiting: HashMap::new(),
+        }
+    }
 }
 
 impl<'c, 'a> Collector<'c, 'a> {
@@ -895,6 +942,10 @@ impl<'c, 'a> Collector<'c, 'a> {
                 ..BatchSummary::default()
             },
             statuses: HashMap::new(),
+            lists: match batch.action {
+                BatchAction::Create(options) if options.write_sums => Some(Lists::new(batch.plan)),
+                _ => None,
+            },
         }
     }
 
@@ -930,6 +981,16 @@ impl<'c, 'a> Collector<'c, 'a> {
                 self.add(entry);
             }
         }
+        // Every file has its entry, so every list is written by now; in
+        // case one was not, its lines are not left waiting.
+        let left: Vec<usize> = self
+            .lists
+            .as_ref()
+            .map(|lists| lists.waiting.keys().copied().collect())
+            .unwrap_or_default();
+        for folder in left {
+            self.write_list(folder);
+        }
         let mut statuses: Vec<StatusCount> = std::mem::take(&mut self.statuses)
             .into_iter()
             .map(|(status, count)| StatusCount { status, count })
@@ -953,6 +1014,56 @@ impl<'c, 'a> Collector<'c, 'a> {
         }
         self.files_done += 1;
         self.bytes_finished += self.batch.plan.files[index].size;
+        let Some(lists) = self.lists.as_mut() else {
+            self.publish(entry);
+            return;
+        };
+        let folder = lists.folder_of[index];
+        lists.left[folder] -= 1;
+        let complete = lists.left[folder] == 0;
+        if matches!(&entry.outcome, EntryOutcome::Created(report) if report.status == CreateStatus::Pending)
+        {
+            // Shown at once as waiting; counted when its list is written.
+            self.pending.push(entry.clone());
+            lists.waiting.entry(folder).or_default().push(entry);
+        } else {
+            self.publish(entry);
+        }
+        if complete {
+            self.write_list(folder);
+        }
+    }
+
+    /// Writes the hash lists of a folder whose files are all done, then
+    /// hands over the final entries of the files that waited for them.
+    fn write_list(&mut self, folder: usize) {
+        let Some(entries) = self
+            .lists
+            .as_mut()
+            .and_then(|lists| lists.waiting.remove(&folder))
+        else {
+            return;
+        };
+        let mut places = Vec::with_capacity(entries.len());
+        let mut reports = Vec::with_capacity(entries.len());
+        for entry in entries {
+            if let EntryOutcome::Created(report) = entry.outcome {
+                places.push((entry.index, entry.path));
+                reports.push(report);
+            }
+        }
+        ops::finish_sums(&mut reports);
+        for ((index, path), report) in places.into_iter().zip(reports) {
+            self.publish(BatchEntry {
+                index,
+                path,
+                outcome: EntryOutcome::Created(report),
+            });
+        }
+    }
+
+    /// An entry with its final status: counted, and handed over.
+    fn publish(&mut self, entry: BatchEntry) {
         match entry.outcome.category() {
             Category::Processed => self.summary.processed += 1,
             Category::Failed => self.summary.failed += 1,

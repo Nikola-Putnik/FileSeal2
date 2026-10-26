@@ -19,7 +19,7 @@ use fileseal_core::ops::content::ContentFinding;
 use fileseal_core::ops::manifest;
 use fileseal_core::ops::search::SearchReport;
 use fileseal_core::ops::{
-    CreateOptions, CreateReport, ExistingReferences, VerifyOptions, VerifyReport,
+    CreateOptions, CreateReport, CreateStatus, ExistingReferences, VerifyOptions, VerifyReport,
 };
 use fileseal_core::{Algorithm, Control, Store};
 
@@ -52,6 +52,9 @@ enum Command {
         /// Do not write hash files next to the files.
         #[arg(long)]
         no_sidecar: bool,
+        /// Add the files to their folder's hash list (SHA256SUMS, MD5SUMS).
+        #[arg(long)]
+        sums: bool,
         #[arg(long = "algo", value_enum, default_values_t = [Algo::Sha256])]
         algorithms: Vec<Algo>,
         /// Create a new item even if the content looks like a known file
@@ -192,6 +195,7 @@ fn run(command: Command) -> Result<bool, String> {
             selection,
             db,
             no_sidecar,
+            sums,
             algorithms,
             new_item,
             existing,
@@ -201,6 +205,7 @@ fn run(command: Command) -> Result<bool, String> {
             let options = CreateOptions {
                 algorithms: algorithms.into_iter().map(Algorithm::from).collect(),
                 write_sidecar: !no_sidecar,
+                write_sums: sums,
                 new_item,
                 existing: existing.into(),
                 import_hash_files,
@@ -236,6 +241,11 @@ fn run(command: Command) -> Result<bool, String> {
     let mut all_ok = true;
     let summary = batch::run(&files, &options, store.as_mut(), &control, &mut |update| {
         for entry in &update.entries {
+            // A line waiting for its folder's hash list: its final result
+            // comes once the list is written.
+            if matches!(&entry.outcome, EntryOutcome::Created(r) if r.status == CreateStatus::Pending) {
+                continue;
+            }
             all_ok &= print_entry(entry);
         }
     })
@@ -364,7 +374,6 @@ fn print_entry(entry: &BatchEntry) -> bool {
 }
 
 fn print_created(report: &CreateReport) -> bool {
-    use fileseal_core::ops::CreateStatus;
     for digest in &report.digests {
         println!("\t{} {}", digest.algorithm.code(), digest.hex);
     }

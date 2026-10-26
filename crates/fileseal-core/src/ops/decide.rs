@@ -20,6 +20,7 @@ use crate::problem::{Problem, ProblemKind};
 use crate::reader::HashedFile;
 use crate::sidecar::{self, SidecarLookup};
 use crate::store::{NewLocation, NewVerification, OperationKind, OperationStatus, Store};
+use crate::sums;
 use crate::timestamp;
 
 /// What was read from a file, as a verification or a search reported it.
@@ -155,7 +156,8 @@ pub fn attach(
 /// Accepts the content observed by a verification as the new reference:
 /// in the database (if `verification_id`, the previous reference stays in
 /// the history) and in the hash files next to the file (if
-/// `update_sidecars`: existing ones are replaced, none is created).
+/// `update_sidecars`: existing ones are replaced, and the file's line in
+/// its folder's hash list; none is created).
 pub fn accept(
     path: &Path,
     observed: &Observation,
@@ -206,6 +208,37 @@ pub fn accept(
                 algorithm,
                 path: target.display().to_string(),
                 requested: true,
+                list: false,
+                outcome,
+                existing,
+                notes: Vec::new(),
+                problem,
+            });
+        }
+        // Its line in the folder's list, if it has one: the same value.
+        for accepted in &observed.digests {
+            let target = sums::path_for(&path, accepted.algorithm).unwrap_or_default();
+            let (existing, outcome, problem) = match sums::lookup(&path, accepted.algorithm) {
+                SidecarLookup::Absent => continue,
+                SidecarLookup::Found { digest, .. } if digest == *accepted => {
+                    (Some(digest.hex), WriteOutcome::AlreadyPresent, None)
+                }
+                found => {
+                    let existing = match found {
+                        SidecarLookup::Found { digest, .. } => Some(digest.hex),
+                        _ => None,
+                    };
+                    match sums::replace(&path, accepted) {
+                        Ok(_) => (existing, WriteOutcome::Written, None),
+                        Err(problem) => (existing, WriteOutcome::Failed, Some(problem)),
+                    }
+                }
+            };
+            report.sidecars.push(SidecarResult {
+                algorithm: accepted.algorithm,
+                path: target.display().to_string(),
+                requested: true,
+                list: true,
                 outcome,
                 existing,
                 notes: Vec::new(),

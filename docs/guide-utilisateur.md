@@ -95,7 +95,7 @@ Les deux se cumulent, et c'est le choix par défaut quand une base est ouverte. 
 1. **Action** : **Créer une référence**.
 2. **Réglages** (le bouton les déplie) :
    - algorithmes : **SHA-256** (recommandé) ; MD5 seulement pour la compatibilité avec d'anciens outils ;
-   - destinations : fichier de hash à côté de chaque fichier, base active, ou les deux.
+   - destinations, au choix et cumulables : un fichier de hash à côté de chaque fichier (`film.mkv.sha256`), **une liste de hash par dossier** (`SHA256SUMS`, `MD5SUMS` : une ligne par fichier du dossier, vérifiable par `sha256sum -c SHA256SUMS`), la base active.
 3. Ajoutez des fichiers ou des dossiers : **Ajouter des fichiers…**, **Ajouter un dossier…**, ou glissez-les dans la fenêtre.
 4. Relisez la phrase au-dessus du bouton, par exemple « Créer les références SHA-256 de 1 234 fichiers (456 Go) dans des fichiers de hash à côté d'eux et la base « Films ». », puis cliquez sur **Créer les références** (ou Ctrl+Entrée).
 
@@ -186,6 +186,7 @@ Un fichier vérifié avec une base est ajouté à son **historique**. Ce n'est p
 | Ajouté à la base (non relu) | Ses fichiers de hash existants ont été enregistrés dans la base, sans relire le fichier. |
 | Conflit avec une référence existante | Le contenu ne correspond plus à la référence existante. Rien n'est écrasé : vérifiez, puis acceptez la nouvelle version si le changement est voulu. |
 | Décision requise | La base connaît déjà ce contenu, à un emplacement où il n'est plus : est-ce le même fichier déplacé (**Rattacher**) ou une autre copie (**créer une nouvelle référence**) ? |
+| En attente de son dossier | Provisoire, avec la liste de hash par dossier : le fichier est lu et enregistré ailleurs, sa ligne ira dans le `SHA256SUMS` du dossier quand les autres fichiers du dossier seront traités. Son statut définitif suit. |
 | Réussite partielle | Une destination a échoué, l'autre a réussi. Le détail dit laquelle et pourquoi (dossier protégé en écriture, disque plein…). |
 | Échec, Annulé | Rien n'a été enregistré. |
 

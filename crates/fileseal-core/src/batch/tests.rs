@@ -138,14 +138,27 @@ fn run_batch(
         &volume,
     )
     .unwrap();
-    let mut entries: Vec<BatchEntry> = updates
-        .iter()
-        .flat_map(|u| u.entries.iter().cloned())
-        .collect();
-    entries.sort_by_key(|e| e.index);
+    // A file waiting for its folder's hash list has a first entry, then its
+    // final one: only a waiting entry is ever replaced, and none is left.
+    let mut by_index: std::collections::BTreeMap<u32, BatchEntry> = Default::default();
+    for entry in updates.iter().flat_map(|u| u.entries.iter().cloned()) {
+        if let Some(previous) = by_index.insert(entry.index, entry) {
+            assert!(
+                matches!(&previous.outcome, EntryOutcome::Created(r) if r.status == CreateStatus::Pending),
+                "only a waiting entry is replaced: {previous:?}"
+            );
+        }
+    }
+    let entries: Vec<BatchEntry> = by_index.into_values().collect();
     let indices: HashSet<u32> = entries.iter().map(|e| e.index).collect();
     assert_eq!(entries.len(), files.len(), "one entry per file");
     assert_eq!(indices.len(), files.len(), "each file once");
+    assert!(
+        entries.iter().all(
+            |e| !matches!(&e.outcome, EntryOutcome::Created(r) if r.status == CreateStatus::Pending)
+        ),
+        "no file left waiting"
+    );
     assert_eq!(updates.last().unwrap().summary.as_ref(), Some(&summary));
     assert_eq!(summary.total as usize, files.len());
     assert_eq!(
@@ -171,6 +184,68 @@ fn run_batch(
 }
 
 fn quiet(_: &BatchUpdate) {}
+
+#[test]
+fn folder_lists_are_written_once_their_folder_is_done() {
+    let fx = Fixture::new();
+    // Interleaved: folder A is done only with its third file.
+    let files = fx.files(&["A/a1.bin", "A/a2.bin", "B/b1.bin", "A/a3.bin"], 1000);
+    let options = BatchOptions {
+        action: BatchAction::Create(CreateOptions {
+            algorithms: vec![Algorithm::Sha256],
+            write_sums: true,
+            ..Default::default()
+        }),
+        parallel_volumes: 1,
+    };
+    let list_a = fx.path("A/SHA256SUMS");
+    let mut waiting_seen = 0;
+    let created = run_batch(
+        fx.root(),
+        &files,
+        &options,
+        None,
+        &Control::new(),
+        &mut |update| {
+            for entry in &update.entries {
+                if matches!(&entry.outcome, EntryOutcome::Created(r) if r.status == CreateStatus::Pending)
+                {
+                    waiting_seen += 1;
+                }
+            }
+        },
+    );
+    assert_eq!(created.statuses(), ["created"; 4]);
+    assert_eq!(created.summary.processed, 4);
+    assert!(waiting_seen >= 1, "shown as waiting before the list");
+    let lines = std::fs::read_to_string(&list_a).unwrap();
+    assert_eq!(lines.lines().count(), 3, "{lines}");
+    assert!(lines.contains("  a1.bin\n") && lines.contains("  a3.bin\n"));
+    assert_eq!(
+        std::fs::read_to_string(fx.path("B/SHA256SUMS"))
+            .unwrap()
+            .lines()
+            .count(),
+        1
+    );
+
+    // Verified from the lists.
+    let verified = run_batch(
+        fx.root(),
+        &files,
+        &verify(),
+        None,
+        &Control::new(),
+        &mut quiet,
+    );
+    assert_eq!(verified.statuses(), ["match"; 4]);
+    match &verified.entries[0].outcome {
+        EntryOutcome::Verified(report) => {
+            assert_eq!(report.sources[0].source, SourceKind::HashList)
+        }
+        other => panic!("{other:?}"),
+    }
+}
 
 #[test]
 fn create_then_verify_then_search_a_list_on_two_volumes() {

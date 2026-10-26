@@ -1,6 +1,7 @@
 //! Commands called by the interface. They translate between the UI and
 //! `fileseal-core`; no business rule lives here.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
@@ -218,7 +219,9 @@ pub async fn create_reference(
             &path,
             &on_progress,
             |file, target, reporter| {
-                let report = ops::create_reference(file, &options, target, &control, reporter);
+                let mut report = ops::create_reference(file, &options, target, &control, reporter);
+                // One file: its line goes to its folder's hash list at once.
+                ops::finish_sums(std::slice::from_mut(&mut report));
                 let status = match report.status {
                     CreateStatus::Cancelled => OperationStatus::Cancelled,
                     CreateStatus::Failed => OperationStatus::Failed,
@@ -252,14 +255,17 @@ pub async fn run_batch(
     let result = blocking(move || {
         let mut guard = lock(&db);
         let store = database_for(&mut guard, use_database)?;
-        let mut entries = Vec::new();
+        // By position: a file waiting for its folder's hash list has a
+        // first entry, then its final one, which replaces it.
+        let mut entries = BTreeMap::new();
         let summary = batch::run(&files, &options, store, &control, &mut |update| {
-            entries.extend(update.entries.iter().cloned());
+            for entry in &update.entries {
+                entries.insert(entry.index, entry.clone());
+            }
             // The window may have been closed: nothing to do about it here.
             let _ = on_update.send(update);
         })?;
-        entries.sort_by_key(|entry| entry.index);
-        Ok((summary, entries))
+        Ok((summary, entries.into_values().collect::<Vec<_>>()))
     })
     .await;
     state.end_job();

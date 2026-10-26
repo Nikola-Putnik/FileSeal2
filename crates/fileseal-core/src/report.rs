@@ -102,8 +102,9 @@ fn row(entry: &ReportEntry) -> Vec<String> {
             let mut details = Vec::new();
             for sidecar in &report.sidecars {
                 details.push(format!(
-                    "{} hash file: {}",
+                    "{} hash {}: {}",
                     sidecar.algorithm.code(),
+                    if sidecar.list { "list" } else { "file" },
                     code(&sidecar.outcome)
                 ));
             }

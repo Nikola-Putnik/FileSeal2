@@ -301,14 +301,17 @@ export const fr: Messages = {
       '(compatibilité : détecte les erreurs accidentelles, ne protège pas contre une falsification)',
     destinations: 'Destinations',
     sidecarNextToFile: 'Fichier de hash à côté de chaque fichier',
+    listPerFolder: 'Une liste de hash par dossier (SHA256SUMS, MD5SUMS)',
     activeDatabase: 'Base active',
     noDatabase: '(aucune base ouverte)',
     readOnlyDatabase: '(base en lecture seule)',
     referencesToUse: 'Références à consulter',
-    sidecarsNextToFile: 'Fichiers de hash à côté de chaque fichier',
+    sidecarsNextToFile:
+      'Fichiers de hash à côté de chaque fichier, et liste du dossier (SHA256SUMS)',
     summary: {
       none: 'aucune',
       hashFiles: 'fichiers de hash',
+      hashLists: 'listes par dossier',
       database: 'base',
       existing: {
         skipComplete: 'référencés sautés',
@@ -349,6 +352,7 @@ export const fr: Messages = {
     needDestination: 'Choisissez au moins une destination.',
     needSource: 'Choisissez au moins une source de références.',
     whereSidecar: 'des fichiers de hash à côté d’eux',
+    whereSums: 'une liste de hash dans chaque dossier',
     whereSidecars: 'leurs fichiers de hash',
     whereLists: 'les lignes des fichiers de hash ajoutés',
     whereDatabase: (name: string) => `la base « ${name} »`,
@@ -395,6 +399,7 @@ export const fr: Messages = {
     title: 'Résultat',
     destinations: 'Destinations',
     hashFile: (algorithm: string) => `Fichier de hash ${algorithm} :`,
+    hashList: (algorithm: string) => `Liste ${algorithm} du dossier :`,
     existingChecked: '(déjà présent, vérifié)',
     database: (name: string) => `Base « ${name} » :`,
     existingValue: 'Valeur existante :',
@@ -513,6 +518,11 @@ export const fr: Messages = {
       explanation:
         'Une référence existante ne correspond pas au contenu actuel, ou ne peut pas être lue. Rien n’a été écrit ni remplacé.',
     },
+    pending: {
+      label: 'En attente de son dossier',
+      explanation:
+        'Lu et enregistré. Sa ligne ira dans la liste de hash du dossier quand les autres fichiers du dossier seront traités.',
+    },
     needsDecision: {
       label: 'Décision requise',
       explanation:
@@ -589,6 +599,7 @@ export const fr: Messages = {
     needsDecision: 'non écrit : décision requise',
     notRead: 'déjà présent, non relu',
     imported: 'ajouté depuis ses fichiers de hash, non relu',
+    pending: 'en attente des autres fichiers du dossier',
     failed: 'échec',
   },
 

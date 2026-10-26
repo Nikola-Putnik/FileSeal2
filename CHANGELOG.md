@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **One hash list per folder** (`SHA256SUMS`, `MD5SUMS`): a new destination when creating references. Each folder gets one list naming its files, checkable with `sha256sum -c SHA256SUMS` from that folder. Lines already there are never changed; new ones are added. Verifying also reads the folder's list, and accepting a new version updates its line.
 - **Fix**: after a run, the number of references shown for the active database sometimes stayed as it was before the run.
 - **Third-party notices**: the licenses of the open-source code FileSeal contains come with the program (THIRD-PARTY-NOTICES.txt, installed beside it and in the portable zip), with its own MIT license (LICENSE.txt).
 

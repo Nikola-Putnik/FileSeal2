@@ -44,6 +44,7 @@ pub struct Settings {
 pub struct RunPreferences {
     pub algorithms: Option<Vec<Algorithm>>,
     pub write_sidecar: Option<bool>,
+    pub write_sums: Option<bool>,
     pub use_sidecar: Option<bool>,
     pub use_database: Option<bool>,
     pub follow_moves: Option<bool>,

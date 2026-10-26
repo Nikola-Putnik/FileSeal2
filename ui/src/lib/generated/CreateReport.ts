@@ -6,7 +6,11 @@ import type { Digest } from "./Digest";
 import type { Problem } from "./Problem";
 import type { SidecarResult } from "./SidecarResult";
 
-export type CreateReport = { path: string, status: CreateStatus, size: number | null, digests: Array<Digest>, sidecars: Array<SidecarResult>, database: DatabaseResult | null, 
+export type CreateReport = { path: string, status: CreateStatus, size: number | null, digests: Array<Digest>, 
+/**
+ * Its hash files, and its lines in its folder's hash lists.
+ */
+sidecars: Array<SidecarResult>, database: DatabaseResult | null, 
 /**
  * Why the file could not be read, if it could not.
  */

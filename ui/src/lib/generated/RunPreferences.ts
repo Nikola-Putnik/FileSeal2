@@ -7,7 +7,7 @@ import type { ExistingReferences } from "./ExistingReferences";
  * the next. Each one is optional: missing (an older file, a choice added
  * later), the interface's default applies.
  */
-export type RunPreferences = { algorithms: Array<Algorithm> | null, writeSidecar: boolean | null, useSidecar: boolean | null, useDatabase: boolean | null, followMoves: boolean | null, recursive: boolean | null, includeHidden: boolean | null, parallelVolumes: number | null, existing: ExistingReferences | null, importHashFiles: boolean | null, 
+export type RunPreferences = { algorithms: Array<Algorithm> | null, writeSidecar: boolean | null, writeSums: boolean | null, useSidecar: boolean | null, useDatabase: boolean | null, followMoves: boolean | null, recursive: boolean | null, includeHidden: boolean | null, parallelVolumes: number | null, existing: ExistingReferences | null, importHashFiles: boolean | null, 
 /**
  * "Only these extensions", lowercase, without the dot.
  */

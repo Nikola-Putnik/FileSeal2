@@ -21,6 +21,7 @@ pub mod report;
 pub mod settings;
 pub mod sidecar;
 pub mod store;
+pub mod sums;
 
 mod faults;
 pub mod platform;

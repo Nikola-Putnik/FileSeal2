@@ -35,6 +35,7 @@ const CREATE_TONES: Record<CreateStatus, Tone> = {
   conflict: 'warn',
   partialSuccess: 'warn',
   needsDecision: 'warn',
+  pending: 'neutral',
   failed: 'error',
   cancelled: 'neutral',
 };
@@ -77,6 +78,7 @@ const SEARCH_TONES: Record<SearchStatus, Tone> = {
 const SPECIAL_ICONS: Partial<Record<CreateStatus | VerifyStatus | SearchStatus, string>> = {
   cancelled: '⏹',
   notProcessed: '–',
+  pending: '…',
 };
 
 /** A file of a batch that was not read. */
@@ -104,6 +106,7 @@ const WRITE_TONES: Record<WriteOutcome, Tone> = {
   needsDecision: 'warn',
   notRead: 'neutral',
   imported: 'ok',
+  pending: 'neutral',
   failed: 'error',
 };
 

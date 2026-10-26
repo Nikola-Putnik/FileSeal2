@@ -64,11 +64,13 @@
 {#if report.sidecars.length > 0 || report.database}
   <h3>{t().result.destinations}</h3>
   <ul class="details">
-    {#each report.sidecars as sidecar (sidecar.algorithm)}
+    {#each report.sidecars as sidecar (`${sidecar.algorithm}-${sidecar.list}`)}
       {@const outcome = writeOutcome(sidecar.outcome)}
       <li>
         <span>
-          {t().result.hashFile(ALGORITHM_NAMES[sidecar.algorithm])}
+          {sidecar.list
+            ? t().result.hashList(ALGORITHM_NAMES[sidecar.algorithm])
+            : t().result.hashFile(ALGORITHM_NAMES[sidecar.algorithm])}
           {#if !sidecar.requested}<span class="muted">{t().result.existingChecked}</span>{/if}
         </span>
         <StatusBadge

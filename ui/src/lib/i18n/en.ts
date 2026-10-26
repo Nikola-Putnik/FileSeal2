@@ -293,15 +293,17 @@ export const en = {
     md5Note: '(compatibility: detects accidental errors, does not protect against tampering)',
     destinations: 'Destinations',
     sidecarNextToFile: 'Hash file next to each file',
+    listPerFolder: 'One hash list per folder (SHA256SUMS, MD5SUMS)',
     activeDatabase: 'Active database',
     noDatabase: '(no database open)',
     readOnlyDatabase: '(read-only database)',
     referencesToUse: 'References to use',
-    sidecarsNextToFile: 'Hash files next to each file',
+    sidecarsNextToFile: 'Hash files next to each file, and their folder’s list (SHA256SUMS)',
     listedReferences: 'Files added from a hash file are verified against their line in it only.',
     summary: {
       none: 'none',
       hashFiles: 'hash files',
+      hashLists: 'folder lists',
       database: 'database',
       existing: {
         skipComplete: 'referenced files skipped',
@@ -340,6 +342,7 @@ export const en = {
     needSource: 'Select at least one source of references.',
     whereSidecar: 'hash files next to them',
     whereSidecars: 'their hash files',
+    whereSums: 'a hash list in each folder',
     whereLists: 'the lines of the hash files added',
     whereDatabase: (name: string) => `the “${name}” database`,
     and: ' and ',
@@ -385,6 +388,7 @@ export const en = {
     title: 'Result',
     destinations: 'Destinations',
     hashFile: (algorithm: string) => `${algorithm} hash file:`,
+    hashList: (algorithm: string) => `${algorithm} list of the folder:`,
     existingChecked: '(already there, checked)',
     database: (name: string) => `“${name}” database:`,
     existingValue: 'Existing value:',
@@ -501,6 +505,11 @@ export const en = {
       explanation:
         'An existing reference does not match the current content, or cannot be read. Nothing was written or replaced.',
     },
+    pending: {
+      label: 'Waiting for its folder',
+      explanation:
+        'Read and recorded. Its line goes into the folder’s hash list once the other files of the folder are done.',
+    },
     needsDecision: {
       label: 'Decision needed',
       explanation:
@@ -573,6 +582,7 @@ export const en = {
     needsDecision: 'not written: decision needed',
     notRead: 'already there, not read',
     imported: 'added from its hash files, not read',
+    pending: 'waiting for the other files of the folder',
     failed: 'failed',
   },
 

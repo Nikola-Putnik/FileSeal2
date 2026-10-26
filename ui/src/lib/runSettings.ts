@@ -8,6 +8,8 @@ import type { RunPreferences } from './generated/RunPreferences';
 export interface RunSettings {
   algorithms: Record<Algorithm, boolean>;
   writeSidecar: boolean;
+  /** Create: a hash list per folder (SHA256SUMS, MD5SUMS). */
+  writeSums: boolean;
   /** Create: files that already have references, read again or skipped. */
   existing: ExistingReferences;
   /** Create: the hash files of skipped files recorded in the database. */
@@ -28,6 +30,7 @@ export function defaultSettings(): RunSettings {
   return {
     algorithms: { sha256: true, md5: false },
     writeSidecar: true,
+    writeSums: false,
     existing: 'skipComplete',
     importHashFiles: true,
     useSidecar: true,
@@ -67,6 +70,7 @@ export function fromPreferences(saved: RunPreferences | null | undefined): Kept 
     };
   }
   settings.writeSidecar = flag(saved.writeSidecar, settings.writeSidecar);
+  settings.writeSums = flag(saved.writeSums, settings.writeSums);
   settings.useSidecar = flag(saved.useSidecar, settings.useSidecar);
   settings.useDatabase = flag(saved.useDatabase, settings.useDatabase);
   settings.followMoves = flag(saved.followMoves, settings.followMoves);
@@ -92,6 +96,7 @@ export function toPreferences(kept: Kept): RunPreferences {
       (a) => settings.algorithms[a],
     ),
     writeSidecar: settings.writeSidecar,
+    writeSums: settings.writeSums,
     useSidecar: settings.useSidecar,
     useDatabase: settings.useDatabase,
     followMoves: settings.followMoves,

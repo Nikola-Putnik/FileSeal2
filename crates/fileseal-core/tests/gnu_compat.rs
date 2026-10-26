@@ -152,3 +152,57 @@ fn we_verify_a_list_written_by_sha256sum() {
         String::from_utf8_lossy(&output.stdout)
     );
 }
+
+/// The folder lists FileSeal writes (`SHA256SUMS`, `MD5SUMS`), checked from
+/// their folder as GNU does it: every line, every name.
+fn check_list_with(tool: &Path, algorithm: Algorithm) {
+    let dir = tempfile::tempdir().unwrap();
+    let options = CreateOptions {
+        algorithms: vec![algorithm],
+        write_sums: true,
+        ..Default::default()
+    };
+    let mut reports: Vec<_> = NAMES
+        .iter()
+        .enumerate()
+        .map(|(i, name)| {
+            let file = dir.path().join(name);
+            std::fs::write(&file, format!("content {i}")).unwrap();
+            create_reference(&file, &options, None, &Control::new(), &mut |_, _| {})
+        })
+        .collect();
+    fileseal_core::ops::finish_sums(&mut reports);
+    for report in &reports {
+        assert_eq!(report.status, CreateStatus::Created, "{report:#?}");
+    }
+    let list = fileseal_core::sums::name_for(algorithm);
+    let output = Command::new(tool)
+        .current_dir(dir.path())
+        .args(["--strict", "-c", "--", &list])
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        output.status.success(),
+        "{} rejected {list}: {stdout} {}",
+        tool.display(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(stdout.matches(": OK").count(), NAMES.len(), "{stdout}");
+}
+
+#[test]
+fn sha256sum_accepts_our_folder_lists() {
+    match gnu_tool("sha256sum") {
+        Some(tool) => check_list_with(&tool, Algorithm::Sha256),
+        None => eprintln!("sha256sum not found: compatibility test skipped"),
+    }
+}
+
+#[test]
+fn md5sum_accepts_our_folder_lists() {
+    match gnu_tool("md5sum") {
+        Some(tool) => check_list_with(&tool, Algorithm::Md5),
+        None => eprintln!("md5sum not found: compatibility test skipped"),
+    }
+}

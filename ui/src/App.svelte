@@ -95,6 +95,7 @@
   let destinations = $derived(
     [
       action === 'create' && settings.writeSidecar ? t().launch.whereSidecar : null,
+      action === 'create' && settings.writeSums ? t().launch.whereSums : null,
       action === 'verify' && settings.useSidecar && included.some((row) => !row.listed)
         ? t().launch.whereSidecars
         : null,
@@ -115,7 +116,11 @@
   let sentence = $derived.by(() => {
     const files = t().launch.files(included.length);
     const size = formatBytes(totalBytes(included));
-    const where = destinations.join(t().launch.and);
+    // "a, b and c".
+    const where =
+      destinations.length > 2
+        ? `${destinations.slice(0, -1).join(', ')}${t().launch.and}${destinations.at(-1)}`
+        : destinations.join(t().launch.and);
     if (action === 'create') {
       const algorithms = selectedAlgorithms.map((a) => ALGORITHM_NAMES[a]).join(' + ');
       const summary = t().launch.createSummary(algorithms, files, size, where);
@@ -197,6 +202,7 @@
             kind: 'create',
             algorithms: selectedAlgorithms,
             writeSidecar: settings.writeSidecar,
+            writeSums: settings.writeSums,
             newItem: false,
             existing: settings.existing,
             importHashFiles: settings.importHashFiles,
@@ -316,6 +322,7 @@
         {
           algorithms: selectedAlgorithms,
           writeSidecar: settings.writeSidecar,
+          writeSums: settings.writeSums,
           newItem: true,
           existing: 'read',
           importHashFiles: false,
