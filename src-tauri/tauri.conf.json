@@ -50,5 +50,14 @@
         "languages": ["English", "French"]
       }
     }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENEMzIzODEwNTcxMzI2MTEKUldRUkpoTlhFRGd5emJmNWlQK2RjY3NBWHZDOTErZ0tDeHphV3dDQ2daWDJkVExSWlJlWTR2Y04K",
+      "endpoints": [
+        "https://github.com/Nikola-Putnik/FileSeal2/releases/latest/download/latest.json"
+      ],
+      "windows": { "installMode": "passive" }
+    }
   }
 }

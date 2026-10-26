@@ -26,6 +26,9 @@ pub fn run() {
             }
         }))
         .plugin(tauri_plugin_dialog::init())
+        // New versions: the latest release on GitHub, its installer signed
+        // with the project's key (tauri.conf.json, plugins.updater).
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(commands::AppState::default())
         // Closing during an operation is confirmed in the page first.
         .on_window_event(|window, event| {
@@ -90,6 +93,7 @@ pub fn run() {
             settings::settings_get,
             settings::settings_set_language,
             settings::settings_set_theme,
+            settings::settings_set_check_updates,
             settings::settings_set_run,
             settings::app_info,
             commands::database_create,
@@ -117,6 +121,7 @@ pub fn run() {
             commands::run_batch,
             commands::expand_hash_file,
             commands::reveal_in_folder,
+            commands::open_release_page,
             commands::pause_job,
             commands::resume_job,
             commands::close_confirmed,

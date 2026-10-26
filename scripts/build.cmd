@@ -2,7 +2,9 @@
 rem Construit la livraison Windows, dans target\release\bundle :
 rem   nsis\FileSeal_<version>_x64-setup.exe        installateur par utilisateur
 rem   portable\FileSeal_<version>_x64-portable.zip  version portable
-rem et, a cote de chacun, son fichier .sha256 ecrit par FileSeal lui-meme.
+rem et, a cote de chacun, son fichier .sha256 ecrit par FileSeal lui-meme ;
+rem avec la cle des mises a jour, la signature de l'installateur (.sig) et
+rem nsis\latest.json pour la release.
 rem Procedure de publication : docs\tests-build-livraison.md.
 setlocal
 cd /d "%~dp0.."
@@ -21,7 +23,22 @@ rem Les licences du code des autres projets qui sera dans le programme,
 rem mesure sur ce qui est construit : jamais perimees.
 node tools\third-party-notices.mjs || exit /b 1
 
-call npm run tauri build || exit /b 1
+rem Mises a jour : avec la cle privee du projet, gardee hors du depot dans le
+rem profil, l'installateur est signe pour le module de mise a jour de Tauri
+rem (.sig), et latest.json decrit la version pour la release. Sans la cle,
+rem une livraison sans fichiers de mise a jour.
+set "UPDATER_KEY=%USERPROFILE%\.tauri\fileseal-updater.key"
+set "UPDATER_CONFIG="
+del /q "target\release\bundle\nsis\latest.json" 2>nul
+if exist "%UPDATER_KEY%" (
+  set "TAURI_SIGNING_PRIVATE_KEY=%UPDATER_KEY%"
+  set "TAURI_SIGNING_PRIVATE_KEY_PASSWORD="
+  set "UPDATER_CONFIG=--config src-tauri\tauri.updater.conf.json"
+) else (
+  echo Pas de cle de mise a jour : livraison sans fichiers de mise a jour.
+)
+
+call npm run tauri build -- %UPDATER_CONFIG% || exit /b 1
 cargo build --release -p fileseal-cli || exit /b 1
 
 rem Controle : le chemin du profil ne doit figurer dans rien de ce qui est livre.
@@ -48,6 +65,9 @@ rem Empreintes : FileSeal ne remplace jamais un fichier de hash existant.
 del /q "%SETUP%.sha256" 2>nul
 target\release\fileseal-cli.exe create "%SETUP%" "%ZIP%" || exit /b 1
 
+if defined UPDATER_CONFIG (node tools\update-manifest.mjs %VERSION% || exit /b 1)
+
 echo.
 echo Livraison :
 dir /b "%BUNDLE%\nsis\FileSeal_%VERSION%_*" "%BUNDLE%\portable\*"
+if exist "%BUNDLE%\nsis\latest.json" dir /b "%BUNDLE%\nsis\latest.json"

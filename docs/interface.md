@@ -18,7 +18,8 @@ L'écran Fichiers, de haut en bas :
    - le nom et la version ;
    - les écrans Fichiers et Bases ;
    - la **base active**, en un bouton. Il ouvre la base actuelle, les récentes, créer, ouvrir et fermer. « lecture seule » et « partage réseau » restent affichés à côté ;
-   - **?** : les raccourcis clavier ; **⚙** : la langue et le [thème](#thèmes).
+   - **?** : les raccourcis clavier ; **⚙** : la langue, le [thème](#thèmes), et la recherche d'une nouvelle version (au démarrage, cochée par défaut ; « Rechercher maintenant », avec son résultat).
+   - **Bandeau de mise à jour**, sous l'en-tête, quand une nouvelle version existe : Nouveautés, Installer et redémarrer (grisé pendant un lot), Plus tard ; Télécharger pour la version portable. Pendant le téléchargement, sa progression.
 2. **Action** (Créer une référence · Vérifier · Rechercher) et le bouton **Réglages**. Il résume les réglages en cours (« SHA-256 · fichiers de hash + base · référencés sautés ») et les déplie en un panneau teinté, au-dessus de la liste, limité à 40 % de la hauteur. **Les réglages et l'état du panneau sont gardés** d'un lancement à l'autre (`settings.json`, `run`) ; une valeur absente ou incohérente reprend sa valeur par défaut. Les réglages :
    - Créer : algorithmes (SHA-256 coché ; MD5 avec la mention « compatibilité ») et destinations (fichier de hash à côté de chaque fichier, liste de hash par dossier `SHA256SUMS` / `MD5SUMS`, base active). **Fichiers déjà référencés** : les sauter sans les relire s'ils ont tous les algorithmes cochés (par défaut), ou s'ils ont une référence quelle qu'elle soit, ou les relire ; et, pour ceux qui sont sautés, ajouter leurs fichiers de hash à la base active ([formats-hash.md](formats-hash.md)).
    - Vérifier : références à consulter (fichiers de hash, base active).

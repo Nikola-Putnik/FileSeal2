@@ -26,6 +26,8 @@ pub struct Settings {
     pub language: Option<String>,
     /// Colour theme (`"light"`, `"dark"`, `"oled"`); `None` = the system's.
     pub theme: Option<String>,
+    /// Look for a new version at start-up; `None` = yes.
+    pub check_updates: Option<bool>,
     /// Most recently used first.
     pub recent_databases: Vec<RecentDatabase>,
     /// The database that was active when FileSeal was last used, reopened

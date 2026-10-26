@@ -18,6 +18,7 @@
   import Popover from './lib/components/Popover.svelte';
   import ResultsPanel from './lib/components/ResultsPanel.svelte';
   import SettingsPanel from './lib/components/SettingsPanel.svelte';
+  import UpdateBanner from './lib/components/UpdateBanner.svelte';
   import { formatBytes } from './lib/format';
   import type { Algorithm } from './lib/generated/Algorithm';
   import type { AppInfo } from './lib/generated/AppInfo';
@@ -47,6 +48,7 @@
   import { defaultSettings, fromPreferences, toPreferences } from './lib/runSettings';
   import { Selection } from './lib/selection.svelte';
   import { THEMES, applyTheme, isTheme, theme, type Theme } from './lib/theme.svelte';
+  import { checkForUpdate, updates as newVersion } from './lib/updates.svelte';
 
   let view = $state<'files' | 'databases'>('files');
   let action = $state<ActionKind>('create');
@@ -69,6 +71,8 @@
   // The window was asked to close while an operation runs.
   let closeRequested = $state(false);
   let appInfo = $state<AppInfo | null>(null);
+  /** Look for a new version at start-up (preferences). */
+  let checkUpdates = $state(true);
   let settingsOpen = $state(false);
   let databaseMessage = $state<BarMessage | null>(null);
   // The kept settings are saved only once they have been read back.
@@ -379,6 +383,26 @@
     }
   }
 
+  async function changeCheckUpdates(next: boolean) {
+    checkUpdates = next;
+    try {
+      await api.settingsSetCheckUpdates(next);
+    } catch {
+      // Only the next start is concerned.
+    }
+  }
+
+  /** What the last check of a new version said, in the preferences. */
+  let updateStatus = $derived.by(() => {
+    if (newVersion.checking) return t().updates.checking;
+    if (newVersion.error && !newVersion.installing) {
+      return t().updates.checkFailed(problemMessage(newVersion.error));
+    }
+    if (newVersion.available) return t().updates.available(newVersion.available.version);
+    if (newVersion.upToDate && appInfo) return t().updates.upToDate(appInfo.version);
+    return '';
+  });
+
   /** Escape in the detail: back to the row in the list. */
   function focusList() {
     document.querySelector<HTMLElement>('#panel-files [role="grid"]')?.focus();
@@ -405,6 +429,9 @@
       .then((saved) => {
         if (isLocale(saved.language)) setLocale(saved.language);
         applyTheme(isTheme(saved.theme) ? saved.theme : 'system');
+        checkUpdates = saved.checkUpdates ?? true;
+        // Not while developing: the version there is not a published one.
+        if (checkUpdates && !import.meta.env.DEV) void checkForUpdate(true);
         const kept = fromPreferences(saved.run);
         settings = kept.settings;
         settingsOpen = kept.settingsOpen;
@@ -499,6 +526,24 @@
             {/each}
           </select>
         </label>
+        <div class="updates-preference">
+          <label>
+            <input
+              type="checkbox"
+              checked={checkUpdates}
+              onchange={(e) => void changeCheckUpdates(e.currentTarget.checked)}
+            />
+            {t().updates.checkAtStart}
+          </label>
+          <div class="check-now">
+            <button
+              type="button"
+              disabled={newVersion.checking || newVersion.installing}
+              onclick={() => void checkForUpdate()}>{t().updates.checkNow}</button
+            >
+            <span class="muted" role="status">{updateStatus}</span>
+          </div>
+        </div>
       </Popover>
     </div>
   </header>
@@ -521,6 +566,8 @@
       <button type="button" onclick={() => (databaseMessage = null)}>{t().close.dismiss}</button>
     </p>
   {/if}
+
+  <UpdateBanner portable={appInfo?.portable ?? false} {busy} current={appInfo?.version ?? null} />
 
   <main>
     {#if view === 'databases'}
@@ -728,6 +775,19 @@
   }
   .preference select {
     font: inherit;
+  }
+  /* Below language and theme, set apart. */
+  .updates-preference {
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+  }
+  .check-now {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+    margin-top: 0.4rem;
   }
   .closing,
   .strip {

@@ -7,6 +7,23 @@ const n = (value: number) => value.toLocaleString('en-GB');
 
 export const en = {
   language: { label: 'Language', en: 'English', fr: 'Français' },
+  updates: {
+    available: (version: string) => `FileSeal ${version} is available.`,
+    current: (version: string) => `(you have ${version})`,
+    notes: 'What’s new',
+    install: 'Install and restart',
+    download: 'Download',
+    later: 'Later',
+    busy: 'Possible once the current run is over: installing closes FileSeal.',
+    downloading: (amount: string) => `Downloading the update… ${amount}`,
+    installing: 'Installing: FileSeal closes, then starts again.',
+    failed: (reason: string) => `The update could not be installed: ${reason}`,
+    checkAtStart: 'Look for a new version at start-up',
+    checkNow: 'Check now',
+    checking: 'Looking for a new version…',
+    upToDate: (version: string) => `${version} is the latest version.`,
+    checkFailed: (reason: string) => `Could not check: ${reason}`,
+  },
   theme: {
     label: 'Theme',
     system: 'As Windows (light or dark)',

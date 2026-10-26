@@ -49,6 +49,7 @@ FileSeal does this for a whole collection at once: add files and folders, or dro
 - **Reports**: export the results of any run as a CSV file, ready for Excel.
 - **Comfortable**: English or French; light, dark and pure-black (OLED) themes; full keyboard navigation; every status shown by an icon and a text, never by colour alone.
 - **Installed or portable**: a per-user installer that needs no administrator rights, or a portable version that runs from a USB stick and leaves nothing in your Windows profile.
+- **Up to date in one click**: at start-up, FileSeal tells you when a new version is out, and installs it when you ask. Each update is signed and checked before it is installed.
 
 ## Screenshots
 
@@ -66,7 +67,7 @@ The Databases screen: every reference of a database, here sorted by size, with t
 - A verification **never changes a reference**. Only "Accept as the new version" does, on your request, and the previous reference stays in the history.
 - An existing hash file is **never overwritten silently**, and a hash file is written completely or not at all.
 - When something fails (a read-only folder, a full disk, an unplugged drive), the result says so. A partial success is never shown as a success.
-- Everything stays on your computer: no account, no internet connection, no telemetry.
+- Everything stays on your computer: no account, no telemetry. The only connection FileSeal makes is to look for a new version on GitHub at start-up, which you can turn off in the preferences (⚙).
 
 ## Install
 
@@ -74,10 +75,10 @@ From the [releases page](https://github.com/Nikola-Putnik/FileSeal2/releases/lat
 
 | File | What it is |
 |---|---|
-| `FileSeal_2.5.0_x64-setup.exe` | Installer for the current user. No administrator rights needed. |
-| `FileSeal_2.5.0_x64-portable.zip` | Portable version: unzip it anywhere, then run `FileSeal.exe`. |
+| `FileSeal_2.6.0_x64-setup.exe` | Installer for the current user. No administrator rights needed. |
+| `FileSeal_2.6.0_x64-portable.zip` | Portable version: unzip it anywhere, then run `FileSeal.exe`. |
 
-Each file comes with a `.sha256` hash file. To check your download, put both in the same folder and run `sha256sum -c FileSeal_2.5.0_x64-setup.exe.sha256` (Git for Windows), or open it in FileSeal and verify.
+Each file comes with a `.sha256` hash file. To check your download, put both in the same folder and run `sha256sum -c FileSeal_2.6.0_x64-setup.exe.sha256` (Git for Windows), or open it in FileSeal and verify.
 
 FileSeal is not code-signed yet, so Windows may show "Windows protected your PC" (SmartScreen): choose **More info**, then **Run anyway**.
 

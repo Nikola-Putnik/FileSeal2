@@ -12,6 +12,10 @@ language: string | null,
  */
 theme: string | null, 
 /**
+ * Look for a new version at start-up; `None` = yes.
+ */
+checkUpdates: boolean | null, 
+/**
  * Most recently used first.
  */
 recentDatabases: Array<RecentDatabase>, 

@@ -291,6 +291,16 @@ pub async fn reveal_in_folder(path: String) -> Result<(), Problem> {
     platform::reveal(Path::new(&path)).map_err(|err| Problem::from_io(&err))
 }
 
+/// The page of FileSeal's latest release, in the browser: where the
+/// portable version is downloaded, and every version's notes. A fixed
+/// address, never one given by the page.
+#[tauri::command]
+pub async fn open_release_page() -> Result<(), Problem> {
+    platform::open_web_page(RELEASES).map_err(|err| Problem::from_io(&err))
+}
+
+const RELEASES: &str = "https://github.com/Nikola-Putnik/FileSeal2/releases/latest";
+
 /// Lists the files that the chosen files and folders stand for, sending
 /// them in batches as they are found. Cancelled by `cancel_job`.
 #[tauri::command]

@@ -16,7 +16,7 @@ Windows 11, 64 bits. Sous Windows 10, le runtime « Microsoft Edge WebView2 » e
 
 ### Avec l'installateur
 
-1. Lancez `FileSeal_2.5.0_x64-setup.exe`. Aucun droit administrateur n'est demandé : FileSeal s'installe pour vous seul, dans `%LOCALAPPDATA%\FileSeal`.
+1. Lancez `FileSeal_2.6.0_x64-setup.exe`. Aucun droit administrateur n'est demandé : FileSeal s'installe pour vous seul, dans `%LOCALAPPDATA%\FileSeal`.
 2. Le programme n'étant pas signé, Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen). Choisissez **Informations complémentaires**, puis **Exécuter quand même**.
 3. FileSeal apparaît dans le menu Démarrer. La dernière page de l'installateur propose aussi un raccourci sur le Bureau.
 
@@ -24,7 +24,7 @@ L'installateur s'affiche en français ou en anglais, selon la langue de Windows.
 
 ### Version portable (clé USB)
 
-1. Décompressez `FileSeal_2.5.0_x64-portable.zip` où vous voulez, par exemple sur une clé USB. Vous obtenez un dossier `FileSeal` avec `FileSeal.exe`, `portable.flag` et `README.txt`.
+1. Décompressez `FileSeal_2.6.0_x64-portable.zip` où vous voulez, par exemple sur une clé USB. Vous obtenez un dossier `FileSeal` avec `FileSeal.exe`, `portable.flag` et `README.txt`.
 2. Lancez `FileSeal.exe`. « portable » s'affiche à côté du numéro de version.
 
 En version portable :
@@ -36,18 +36,25 @@ Supprimer `portable.flag` fait fonctionner ce même programme comme la version i
 
 ### Vérifier le fichier téléchargé
 
-Chaque fichier livré est accompagné de son fichier de hash (`FileSeal_2.5.0_x64-setup.exe.sha256`), écrit par FileSeal lui-même. Pour contrôler le téléchargement, mettez les deux fichiers dans le même dossier, puis au choix :
+Chaque fichier livré est accompagné de son fichier de hash (`FileSeal_2.6.0_x64-setup.exe.sha256`), écrit par FileSeal lui-même. Pour contrôler le téléchargement, mettez les deux fichiers dans le même dossier, puis au choix :
 - avec un FileSeal déjà installé : action **Vérifier**, puis ajoutez le fichier `.sha256` à la liste ;
-- avec Git for Windows : `sha256sum -c FileSeal_2.5.0_x64-setup.exe.sha256` ;
-- sans outil : `certutil -hashfile FileSeal_2.5.0_x64-setup.exe SHA256`, à comparer au contenu du fichier `.sha256`.
+- avec Git for Windows : `sha256sum -c FileSeal_2.6.0_x64-setup.exe.sha256` ;
+- sans outil : `certutil -hashfile FileSeal_2.6.0_x64-setup.exe SHA256`, à comparer au contenu du fichier `.sha256`.
 
 ## Mettre à jour
 
-Lancez l'installateur de la nouvelle version : il remplace l'ancienne. Vos bases et vos réglages sont conservés.
+À partir de la 2.6.0, **FileSeal cherche une nouvelle version au démarrage**, dans les versions publiées sur GitHub. S'il en trouve une, un bandeau sous l'en-tête l'annonce :
+- **Nouveautés** : ce que change la nouvelle version ;
+- **Installer et redémarrer** : FileSeal télécharge l'installateur, vérifie sa signature (seule une version signée par le projet est installée), puis se ferme ; l'installateur fait la mise à jour et relance FileSeal. Ce bouton est grisé pendant un lot, puisque l'installation ferme FileSeal ;
+- **Plus tard** : le bandeau disparaît jusqu'au prochain démarrage.
+
+Dans les préférences (**⚙**) : **Rechercher une nouvelle version au démarrage** (cochée par défaut ; décochée, FileSeal ne se connecte jamais), et **Rechercher maintenant**. Sans connexion Internet, la recherche au démarrage échoue en silence.
+
+On peut aussi lancer l'installateur de la nouvelle version à la main : il remplace l'ancienne. Depuis la 2.5.0 ou avant, c'est la seule façon d'arriver à la 2.6.0. Vos bases et vos réglages sont conservés.
 
 Si la nouvelle version a fait évoluer le format des bases, chaque base est mise à jour à sa première ouverture. **Une copie de la base dans son état précédent est faite avant**, à côté d'elle, et un message vous indique son nom. Une base mise à jour ne s'ouvre plus avec l'ancienne version de FileSeal, d'où cette copie.
 
-En version portable, remplacez `FileSeal.exe` par le nouveau et gardez le dossier `data`.
+En version portable, le bandeau propose **Télécharger**, qui ouvre la page de la nouvelle version : remplacez `FileSeal.exe` par le nouveau et gardez le dossier `data`.
 
 ## Désinstaller
 
@@ -80,7 +87,7 @@ Les deux se cumulent, et c'est le choix par défaut quand une base est ouverte. 
   - les écrans **Fichiers** et **Bases** ;
   - la **base active** : un clic ouvre la base actuelle, les récentes, créer, ouvrir, fermer ;
   - **?** : les raccourcis clavier ;
-  - **⚙** : la langue, et le thème : **comme Windows** (par défaut), **clair**, **sombre**, ou **sombre OLED** (noir pur, pour les écrans OLED).
+  - **⚙** : la recherche de mises à jour ([Mettre à jour](#mettre-à-jour)), la langue, et le thème : **comme Windows** (par défaut), **clair**, **sombre**, ou **sombre OLED** (noir pur, pour les écrans OLED).
 - **L'action** (Créer, Vérifier, Rechercher) et le bouton **Réglages**, qui résume les réglages en cours et les déplie au besoin. Vos réglages sont gardés d'un lancement à l'autre.
 - **La liste des fichiers** prend toute la hauteur. Le **Détail** du fichier choisi s'ouvre à côté. Si la fenêtre est étroite, il s'ouvre en dessous, et seulement sur demande : double-clic, Entrée ou bouton **Détail**. ✕ le ferme, Échap ramène à la liste.
 - **En bas, toujours visible** :

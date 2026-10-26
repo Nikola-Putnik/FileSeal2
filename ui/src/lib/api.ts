@@ -63,6 +63,10 @@ export const api = {
   settingsSetLanguage: (language: string | null) =>
     invoke<Settings>('settings_set_language', { language }),
   settingsSetTheme: (theme: string | null) => invoke<Settings>('settings_set_theme', { theme }),
+  settingsSetCheckUpdates: (check: boolean) =>
+    invoke<Settings>('settings_set_check_updates', { check }),
+  /** The page of the latest release, in the browser. */
+  openReleasePage: () => invoke<void>('open_release_page'),
   settingsSetRun: (run: RunPreferences) => invoke<Settings>('settings_set_run', { run }),
   databaseCreate: (path: string, name: string) =>
     invoke<DatabaseInfo>('database_create', { path, name }),

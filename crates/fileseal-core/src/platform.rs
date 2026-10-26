@@ -563,6 +563,31 @@ pub fn reveal(path: &Path) -> io::Result<()> {
     }
 }
 
+/// Opens a web page in the default browser. To do when porting: `open` on
+/// macOS, `xdg-open` on Linux.
+pub fn open_web_page(url: &str) -> io::Result<()> {
+    if !url.starts_with("https://") {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "not a web page",
+        ));
+    }
+    #[cfg(windows)]
+    {
+        std::process::Command::new("explorer.exe")
+            .arg(url)
+            .spawn()
+            .map(|_| ())
+    }
+    #[cfg(not(windows))]
+    {
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "not available on this system yet",
+        ))
+    }
+}
+
 /// While alive, the computer does not go to sleep on its own (the screen
 /// may still turn off). Windows ties the request to the thread that made
 /// it, so this guard cannot be sent to another thread.

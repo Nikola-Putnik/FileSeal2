@@ -116,7 +116,12 @@ Mises à jour à chaque étape. Les limites prévues pour être levées dans une
 
 - **Programme non signé** : Windows SmartScreen peut avertir au premier lancement de l'installateur ou de la version portable (« Informations complémentaires », puis « Exécuter quand même »). Un certificat de signature de code est payant ; à reconsidérer pour une diffusion large.
 - **WebView2 n'est pas inclus dans l'installateur.** Il fait partie de Windows 11. Sur un Windows 10 qui ne l'aurait pas, l'installateur le télécharge, ce qui demande Internet ; la version portable ne démarre pas sans lui.
-- **Pas de mise à jour automatique** : une nouvelle version s'installe par-dessus l'ancienne (évolution 9 du cadrage).
+- **Mises à jour** (2.6.0) :
+  - la recherche lit le `latest.json` de la dernière release GitHub : sans Internet, ou si GitHub ne répond pas, rien n'est proposé ;
+  - les versions 2.5.0 et antérieures n'ont pas ce mécanisme : la 2.6.0 s'installe une fois à la main ;
+  - la version portable ne se met pas à jour elle-même : elle annonce la version et ouvre sa page ;
+  - la clé de signature des mises à jour est sur l'ordinateur de construction, sans mot de passe, protégée par la session Windows. Perdue, plus aucune mise à jour automatique n'est possible pour les installations existantes (une nouvelle clé exigerait une installation à la main) ; volée, elle permettrait de signer une fausse mise à jour. Elle doit être sauvegardée à l'abri ;
+  - l'installateur lui-même n'est toujours pas signé pour Windows (SmartScreen, voir plus haut) : la signature des mises à jour ne concerne que leur vérification par FileSeal.
 - **Une seule instance à la fois**, installée et portable confondues : lancer l'une pendant que l'autre est ouverte ramène la fenêtre de la première.
 - **La désinstallation garde** les réglages et une clé de registre `HKCU\Software\FileSeal` (le dossier d'installation, pour une réinstallation), sauf si « Supprimer les données de l'application » est coché. Les bases et les fichiers de hash ne sont jamais touchés.
 - **L'installation silencieuse** (`/S`) crée aussi un raccourci sur le Bureau.

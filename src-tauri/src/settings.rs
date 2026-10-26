@@ -94,6 +94,15 @@ pub async fn settings_set_theme(
     state.update(|settings| settings.theme = theme)
 }
 
+/// Whether to look for a new version at start-up.
+#[tauri::command]
+pub async fn settings_set_check_updates(
+    state: State<'_, SettingsState>,
+    check: bool,
+) -> Result<Settings, Problem> {
+    state.update(|settings| settings.check_updates = Some(check))
+}
+
 /// The window's own theme (title bar), for the page's: dark for both dark
 /// themes, the system's when none is chosen.
 pub fn native_theme(theme: Option<&str>) -> Option<tauri::Theme> {
