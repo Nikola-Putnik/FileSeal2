@@ -4,16 +4,16 @@
 // Mounted as D: (subst) so that no local path shows on screen.
 // Procedure: docs/tests-build-livraison.md, "Captures d'écran du README".
 //
-//   node tools/demo-collection.cjs <folder>          creates it
-//   node tools/demo-collection.cjs <folder> --alter  one photo changes, one arrives
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const { execFileSync } = require('child_process');
+//   node tools/demo-collection.mjs <folder>          creates it
+//   node tools/demo-collection.mjs <folder> --alter  one photo changes, one arrives
+import { execFileSync } from 'node:child_process';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const [root, option] = process.argv.slice(2);
 if (!root) {
-  console.error('usage: node tools/demo-collection.cjs <folder> [--alter]');
+  console.error('usage: node tools/demo-collection.mjs <folder> [--alter]');
   process.exit(2);
 }
 const album = path.join(root, 'Photos', 'Crète 2026');

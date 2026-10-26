@@ -170,10 +170,10 @@ Produit dans `target\release\bundle\` :
 
 Dans `docs/images/`, faites sur une collection de démonstration, pour qu'aucun chemin ni nom de fichier personnel n'apparaisse :
 
-1. `node tools/demo-collection.cjs <dossier vide>` : cinq films en fichiers épars (de 29 à 59 Go affichés, sans place prise sur le disque, lus à la vitesse du processeur), l'album « Photos\Crète 2026 », une bande originale.
+1. `node tools/demo-collection.mjs <dossier vide>` : cinq films en fichiers épars (de 29 à 59 Go affichés, sans place prise sur le disque, lus à la vitesse du processeur), l'album « Photos\Crète 2026 », une bande originale.
 2. `subst D: <dossier>` : les chemins affichés commencent par `D:\`.
 3. Le programme publié, lancé à part (réglages et données WebView2 temporaires, port de débogage), en anglais et dans le thème de Windows. Base `D:\Collection.fileseal`, puis **Créer** sur `D:\Movies`, `D:\Photos`, `D:\Music`.
-4. `node tools/demo-collection.cjs <dossier> --alter` (une photo change d'un octet, une nouvelle arrive), puis **Vérifier** les trois dossiers.
+4. `node tools/demo-collection.mjs <dossier> --alter` (une photo change d'un octet, une nouvelle arrive), puis **Vérifier** les trois dossiers.
 5. Captures à 1 920 × 1 040 (`cdp.mjs shot … 1920x1040`) : pendant la vérification (`verify-progress.png`), après avec la ligne de Blade Runner choisie (`verify-results.png`), et l'écran Bases trié par taille, avec l'historique de Blade Runner (`databases.png`).
 6. Arrêter le programme, `subst D: /d`, supprimer le dossier.
 
