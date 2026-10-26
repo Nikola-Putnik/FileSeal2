@@ -31,7 +31,10 @@
     "publisher": "FileSeal",
     "category": "Utility",
     "copyright": "Copyright (c) 2026 Nikola-Putnik, MIT License",
-    "resources": { "../LICENSE": "LICENSE.txt" },
+    "resources": {
+      "../LICENSE": "LICENSE.txt",
+      "../THIRD-PARTY-NOTICES.txt": "THIRD-PARTY-NOTICES.txt"
+    },
     "shortDescription": "Checks that files have not changed over time",
     "longDescription": "FileSeal records the hashes of files, in hash files next to them or in databases, and verifies later that their content has not changed.",
     "icon": [

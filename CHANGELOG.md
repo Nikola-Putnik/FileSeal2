@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Third-party notices**: the licenses of the open-source code FileSeal contains come with the program (THIRD-PARTY-NOTICES.txt, installed beside it and in the portable zip), with its own MIT license (LICENSE.txt).
+
 ## 2.5.0 — 2026-10-24
 
 - **Sort the references of a database**: click a column header on the Databases screen (name, folder, size, date recorded, last verification); click again to reverse. The sort applies to the whole database, not only to the 2,000 rows shown, and takes less than a quarter of a second for 100,000 references.

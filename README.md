@@ -90,4 +90,4 @@ The detailed documentation is in French, in [`docs/`](docs/): the [user guide](d
 
 ## License
 
-FileSeal is released under the [MIT License](LICENSE).
+FileSeal is released under the [MIT License](LICENSE). It includes code from other open-source projects, under their own licenses: see [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt), which also comes with the program.

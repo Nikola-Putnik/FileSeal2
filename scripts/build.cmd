@@ -17,25 +17,30 @@ rem nom de session) pour ses messages d'erreur internes : ils deviennent
 rem relatifs. Le controle apres la construction le garantit.
 set "RUSTFLAGS=--remap-path-prefix=%USERPROFILE%=~ --remap-path-prefix=%CD%=."
 
+rem Les licences du code des autres projets qui sera dans le programme,
+rem mesure sur ce qui est construit : jamais perimees.
+node tools\third-party-notices.mjs || exit /b 1
+
 call npm run tauri build || exit /b 1
 cargo build --release -p fileseal-cli || exit /b 1
 
-rem Controle : le chemin du profil ne doit figurer dans aucun des programmes.
-powershell -NoProfile -Command "$profil = $env:USERPROFILE; foreach ($f in 'target\release\fileseal.exe', 'target\release\fileseal-cli.exe') { $texte = [Text.Encoding]::GetEncoding(28591).GetString([IO.File]::ReadAllBytes($f)); if ($texte.IndexOf($profil, [StringComparison]::OrdinalIgnoreCase) -ge 0) { Write-Host ($f + ' contient le chemin du profil Windows : livraison refusee.'); exit 1 } }" || exit /b 1
+rem Controle : le chemin du profil ne doit figurer dans rien de ce qui est livre.
+powershell -NoProfile -Command "$profil = $env:USERPROFILE; foreach ($f in 'target\release\fileseal.exe', 'target\release\fileseal-cli.exe', 'THIRD-PARTY-NOTICES.txt') { $texte = [Text.Encoding]::GetEncoding(28591).GetString([IO.File]::ReadAllBytes($f)); if ($texte.IndexOf($profil, [StringComparison]::OrdinalIgnoreCase) -ge 0) { Write-Host ($f + ' contient le chemin du profil Windows : livraison refusee.'); exit 1 } }" || exit /b 1
 
 set BUNDLE=target\release\bundle
 set SETUP=%BUNDLE%\nsis\FileSeal_%VERSION%_x64-setup.exe
 set ZIP=%BUNDLE%\portable\FileSeal_%VERSION%_x64-portable.zip
 if not exist "%SETUP%" (echo Installateur introuvable : %SETUP% & exit /b 1)
 
-rem Version portable : le programme, portable.flag, le mode d'emploi et la
-rem licence, dans un dossier FileSeal.
+rem Version portable : le programme, portable.flag, le mode d'emploi, la
+rem licence et celles des autres projets, dans un dossier FileSeal.
 if exist "%BUNDLE%\portable" rmdir /s /q "%BUNDLE%\portable"
 mkdir "%BUNDLE%\portable\FileSeal" || exit /b 1
 copy /y target\release\fileseal.exe "%BUNDLE%\portable\FileSeal\FileSeal.exe" >nul || exit /b 1
 copy /y scripts\portable\portable.flag "%BUNDLE%\portable\FileSeal\" >nul || exit /b 1
 copy /y scripts\portable\README.txt "%BUNDLE%\portable\FileSeal\" >nul || exit /b 1
 copy /y LICENSE "%BUNDLE%\portable\FileSeal\LICENSE.txt" >nul || exit /b 1
+copy /y THIRD-PARTY-NOTICES.txt "%BUNDLE%\portable\FileSeal\" >nul || exit /b 1
 "%SystemRoot%\System32\tar.exe" -a -cf "%ZIP%" -C "%BUNDLE%\portable" FileSeal || exit /b 1
 rmdir /s /q "%BUNDLE%\portable\FileSeal"
 
