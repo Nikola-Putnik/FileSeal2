@@ -19,8 +19,9 @@ const [command, ...rest] = process.argv.slice(2);
 const arg = rest
   .map((r) => (r.startsWith('@') ? fs.readFileSync(r.slice(1), 'utf8') : r))
   .join(';\n');
-// The port given to WebView2 (--remote-debugging-port), 9222 by default.
-const port = process.env.CDP_PORT ?? '9222';
+// The port given to WebView2 (--remote-debugging-port), 9232 by default:
+// not the usual 9222, which other applications debugged may take.
+const port = process.env.CDP_PORT ?? '9232';
 const targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
 // Only a FileSeal window: another application debugged on the same port
 // must never receive these scripts, clicks or simulated drops.

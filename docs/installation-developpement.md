@@ -47,9 +47,9 @@ Les scripts sont des `.cmd`, car les scripts PowerShell `.ps1` sont bloqués par
 - **Interface** (`npm run test`) : fonctions de mise en forme.
 - **De bout en bout dans l'application** : on pilote la vraie fenêtre par le protocole DevTools de WebView2.
   1. Lancer une instance isolée en arrière-plan :
-     `FILESEAL_CONFIG_DIR=<dossier temporaire> WEBVIEW2_USER_DATA_FOLDER=<dossier temporaire> WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222 npm run tauri dev`
+     `FILESEAL_CONFIG_DIR=<dossier temporaire> WEBVIEW2_USER_DATA_FOLDER=<dossier temporaire> WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9232 npm run tauri dev`
      `FILESEAL_CONFIG_DIR` remplace le dossier des réglages (`settings.json`) : une instance de test ne touche jamais aux réglages réels.
-  2. `cdp.mjs` n'agit que sur une page intitulée « FileSeal ». Si une autre application en développement utilise déjà le port 1420 (Vite) ou 9222 (débogage), ne pas lancer `tauri dev` : construire avec `npx tauri build --no-bundle`, lancer `target\release\fileseal.exe` avec `--remote-debugging-port=9223`, et ajouter `CDP_PORT=9223` aux commandes ci-dessous.
+  2. `cdp.mjs` n'agit que sur une page intitulée « FileSeal ». **Ports de FileSeal** : 1430 pour le serveur de développement (Vite, `vite.config.ts` et `devUrl` de `tauri.conf.json`) et 9232 pour le débogage (`cdp.mjs`). Ce ne sont pas les ports par défaut (1420 du modèle Tauri, 9222 habituel) : d'autres projets Tauri en développement sur le même ordinateur les prennent, et la fenêtre charge ce qui répond sur son `devUrl`. Si l'un d'eux est quand même occupé, ne pas lancer `tauri dev` : construire avec `npx tauri build --no-bundle`, lancer `target\release\fileseal.exe` avec `--remote-debugging-port=9233`, et ajouter `CDP_PORT=9233` aux commandes ci-dessous.
   3. Piloter avec `node tools/e2e/cdp.mjs eval @script.js` et capturer l'écran avec `node tools/e2e/cdp.mjs shot capture.png [full] [1920x1040] [prefers-color-scheme=light]`. La taille et les caractéristiques émulées ne valent que pour cette capture. Autres commandes : `keys Tab Shift+Tab ArrowDown Control+a…` (vraies frappes, puis l'élément qui a le focus), `ax grid row tab…` (arbre d'accessibilité : rôles, noms, états), `media forced-colors=active` (émulation d'une media query). Dans la page, `window.__TAURI_INTERNALS__.invoke('commande', {…})` appelle une commande Rust. Pour une commande à `Channel`, importer le module de l'interface : `const { api } = await import('/src/lib/api.ts')` (servi par Vite en développement).
   4. La demande de fermeture de la fenêtre se provoque comme un vrai clic sur la croix, depuis PowerShell : `(Get-Process -Id <pid de fileseal.exe>).CloseMainWindow()`.
   5. Un glisser-déposer se simule par `invoke('plugin:event|emit', { event: 'tauri://drag-drop', payload: { paths: [...], position: { x: 0, y: 0 } } })`.
@@ -57,7 +57,7 @@ Les scripts sont des `.cmd`, car les scripts PowerShell `.ps1` sont bloqués par
   Règles :
   - **ne jamais cliquer sur un bouton qui ouvre une boîte de dialogue native** (elle s'ouvrirait à l'écran et bloquerait le pilotage) : appeler la commande directement, par exemple `database_create` ;
   - travailler sur des fichiers et des bases de test dans un dossier temporaire, jamais sur des données réelles ;
-  - avant de lancer, vérifier que les ports 1420 et 9222 sont libres (`curl http://127.0.0.1:9222/json`) : un script envoyé à la fenêtre d'une autre application y agirait pour de vrai ;
+  - avant de lancer, vérifier que les ports 1430 et 9232 sont libres (`curl http://127.0.0.1:9232/json`) : un script envoyé à la fenêtre d'une autre application y agirait pour de vrai ;
   - arrêter ensuite ses propres processus **par PID** (`fileseal.exe`, `cargo run`, `vite`), jamais par nom.
 
 ## Journaux

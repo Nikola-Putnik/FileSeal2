@@ -8,7 +8,10 @@ export default defineConfig({
   // ESLint look for it), outside the Vite root.
   plugins: [svelte({ configFile: '../svelte.config.js' })],
   clearScreen: false,
-  server: { port: 1420, strictPort: true, watch: { ignored: ['**/src-tauri/**', '**/target/**'] } },
+  // 1430, not the 1420 of Tauri's template: other Tauri projects in
+  // development on the same computer use that one, and the window loads
+  // whatever answers there (tauri.conf.json, devUrl).
+  server: { port: 1430, strictPort: true, watch: { ignored: ['**/src-tauri/**', '**/target/**'] } },
   build: { outDir: '../dist', emptyOutDir: true, target: 'es2022' },
   test: { include: ['src/**/*.test.ts'] },
 });
