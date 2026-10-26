@@ -166,6 +166,17 @@ Produit dans `target\release\bundle\` :
 7. **Commit et étiquette** : `git tag v<version>`.
 8. **Publication** sur https://github.com/Nikola-Putnik/FileSeal2 : `git push origin main v<version>`, puis une « release » à l'étiquette (page Releases du dépôt), avec l'installateur, le zip et leurs deux fichiers `.sha256`, et les nouveautés de `CHANGELOG.md` en texte. Sans `gh` : `node tools/github-release.mjs v<version> <notes.md> <les quatre fichiers>`, qui passe par l'API REST de GitHub avec l'identifiant que Git utilise déjà pour pousser (jamais affiché), et refuse si l'étiquette a déjà sa release. Les notes : celles du CHANGELOG, en anglais, avec les empreintes SHA-256 des deux fichiers.
 
+## Captures d'écran du README
+
+Dans `docs/images/`, faites sur une collection de démonstration, pour qu'aucun chemin ni nom de fichier personnel n'apparaisse :
+
+1. `node tools/demo-collection.cjs <dossier vide>` : cinq films en fichiers épars (de 29 à 59 Go affichés, sans place prise sur le disque, lus à la vitesse du processeur), l'album « Photos\Crète 2026 », une bande originale.
+2. `subst D: <dossier>` : les chemins affichés commencent par `D:\`.
+3. Le programme publié, lancé à part (réglages et données WebView2 temporaires, port de débogage), en anglais et dans le thème de Windows. Base `D:\Collection.fileseal`, puis **Créer** sur `D:\Movies`, `D:\Photos`, `D:\Music`.
+4. `node tools/demo-collection.cjs <dossier> --alter` (une photo change d'un octet, une nouvelle arrive), puis **Vérifier** les trois dossiers.
+5. Captures à 1 920 × 1 040 (`cdp.mjs shot … 1920x1040`) : pendant la vérification (`verify-progress.png`), après avec la ligne de Blade Runner choisie (`verify-results.png`), et l'écran Bases trié par taille, avec l'historique de Blade Runner (`databases.png`).
+6. Arrêter le programme, `subst D: /d`, supprimer le dossier.
+
 ## Installer, mettre à jour, désinstaller (contrôle de livraison)
 
 Sur une session Windows 11 **sans droits administrateur**. Les commandes en mode silencieux (`/S`) évitent les clics ; faire au moins une fois le parcours avec les fenêtres de l'installateur.

@@ -6,6 +6,8 @@ FileSeal is a Windows app that keeps a fingerprint of your files and tells you, 
 
 **[Download the latest version](https://github.com/Nikola-Putnik/FileSeal2/releases/latest)**: Windows, 64-bit, free and open source. Works offline, with no account.
 
+![FileSeal after verifying a collection of movies, photos and music: every file matches its reference, except one photo that changed and a new one not referenced yet. The details of Blade Runner are shown beside the list.](docs/images/verify-results.png)
+
 ## How it works
 
 Take a file you care about:
@@ -47,6 +49,16 @@ FileSeal does this for a whole collection at once: add files and folders, or dro
 - **Reports**: export the results of any run as a CSV file, ready for Excel.
 - **Comfortable**: English or French; light, dark and pure-black (OLED) themes; full keyboard navigation; every status shown by an icon and a text, never by colour alone.
 - **Installed or portable**: a per-user installer that needs no administrator rights, or a portable version that runs from a USB stick and leaves nothing in your Windows profile.
+
+## Screenshots
+
+A verification in progress: overall progress, throughput, time left, and each file's result as soon as it is read.
+
+![A verification in progress, at 69%, with the throughput and the time left.](docs/images/verify-progress.png)
+
+The Databases screen: every reference of a database, here sorted by size, with the history of the one chosen (its versions, where it has been, every verification).
+
+![The references of a database, largest files first, with the history of Blade Runner beside them.](docs/images/databases.png)
 
 ## Your files are safe
 
